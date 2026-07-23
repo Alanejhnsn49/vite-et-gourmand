@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace - Vite & Gourmand</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <!-- Chart.js (Pour les graphiques de José) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Mon CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <!-- Menu de navigation dynamique -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="index.html">Vite & Gourmand <span id="roleBadge" class="badge bg-secondary ms-2 fs-6">Espace Client</span></a>
+            
+            <!-- Sélecteur de rôle rapide pour la démonstration/test -->
+            <div class="d-flex align-items-center gap-2 ms-auto me-3">
+                <span class="text-white-50 small d-none d-sm-inline">Simuler le rôle :</span>
+                <select id="roleSelector" class="form-select form-select-sm bg-secondary text-white border-0" style="width: 140px;" onchange="switchRole(this.value)">
+                    <option value="user">Utilisateur</option>
+                    <option value="employee">Employé</option>
+                    <option value="admin">Administrateur</option>
+                </select>
+            </div>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Retour au site</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="login.html"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENU PRINCIPAL DYNAMIQUE -->
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+            
+            <!-- ========================================== -->
+            <!-- 1. ESPACE UTILISATEUR (CLIENT) -->
+            <!-- ========================================== -->
+            <div id="space-user" class="role-section">
+                <div class="row g-4">
+                    <!-- Colonne gauche : Profil -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm p-4 rounded">
+                            <h3 class="h5 fw-bold text-success mb-4"><i class="bi bi-person-gear me-2"></i>Mes Informations</h3>
+                            <form id="profileForm" onsubmit="alert('Profil mis à jour !'); return false;">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Nom</label>
+                                    <input type="text" class="form-control" value="Dupont" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Prénom</label>
+                                    <input type="text" class="form-control" value="Jean" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Téléphone (GSM)</label>
+                                    <input type="tel" class="form-control" value="06 12 34 56 78" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Adresse de facturation</label>
+                                    <textarea class="form-control" rows="2" required>45 Cours de l'Intendance, 33000 Bordeaux</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Enregistrer les modifications</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Colonne droite : Historique des commandes -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm p-4 rounded">
+                            <h3 class="h5 fw-bold text-dark mb-4"><i class="bi bi-receipt me-2"></i>Mes Commandes</h3>
+                            
+                            <!-- Commande 1 : En attente (Modifiable/Annulable) -->
+                            <div class="border rounded p-3 mb-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <span class="fw-bold">Commande #VG-9842</span>
+                                    <span class="badge bg-warning text-dark">En attente de validation</span>
+                                </div>
+                                <p class="small text-muted mb-2"><strong>Formule :</strong> Le Buffet Champêtre du Sud-Ouest (15 personnes) - 290.00 €</p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="alert('Modification autorisée : tout est modifiable sauf le choix du menu.')"><i class="bi bi-pencil me-1"></i>Modifier</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="confirm('Êtes-vous sûr de vouloir annuler cette commande ?')"><i class="bi bi-trash me-1"></i>Annuler la commande</button>
+                                </div>
+                            </div>
+
+                            <!-- Commande 2 : Acceptée (Suivi actif, non modifiable) -->
+                            <div class="border rounded p-3 mb-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <span class="fw-bold">Commande #VG-9711</span>
+                                    <span class="badge bg-info text-dark">En préparation</span>
+                                </div>
+                                <p class="small text-muted mb-2"><strong>Formule :</strong> Éveil des Sens (10 personnes) - 380.00 €</p>
+                                <div class="bg-light p-3 rounded mb-2">
+                                    <h6 class="fw-bold small mb-2"><i class="bi bi-clock-history me-1"></i>Suivi de livraison :</h6>
+                                    <ul class="list-unstyled mb-0 small text-muted">
+                                        <li><i class="bi bi-check-circle-fill text-success me-1"></i> 23/07/2026 10:30 - Commande acceptée par l'équipe</li>
+                                        <li><i class="bi bi-arrow-right-circle text-primary me-1"></i> 23/07/2026 11:15 - En cours de préparation en cuisine</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Commande 3 : Terminée (Avis disponible) -->
+                            <div class="border rounded p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <span class="fw-bold">Commande #VG-9520</span>
+                                    <span class="badge bg-success">Terminée</span>
+                                </div>
+                                <p class="small text-muted mb-2"><strong>Formule :</strong> Douceurs de Pâques (6 personnes) - 210.00 €</p>
+                                <div class="border-top pt-2 mt-2">
+                                    <h6 class="fw-bold text-dark small mb-2">Votre avis sur cette prestation :</h6>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <select id="ratingSelect" class="form-select form-select-sm" style="width: 100px;">
+                                            <option value="5">⭐⭐⭐⭐⭐</option>
+                                            <option value="4">⭐⭐⭐⭐</option>
+                                            <option value="3">⭐⭐⭐</option>
+                                            <option value="2">⭐⭐</option>
+                                            <option value="1">⭐</option>
+                                        </select>
+                                        <input type="text" class="form-control form-control-sm" placeholder="Laissez un commentaire...">
+                                        <button class="btn btn-sm btn-success" onclick="alert('Merci pour votre avis ! Il sera publié après validation par un modérateur.')">Envoyer</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 2. ESPACE EMPLOYÉ -->
+            <!-- ========================================== -->
+            <div id="space-employee" class="role-section d-none">
+                <div class="row g-4">
+                    <!-- Gestion des commandes clients -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm p-4 rounded">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <h3 class="h5 fw-bold text-dark mb-0"><i class="bi bi-list-check me-2"></i>Gestion des Commandes Clients</h3>
+                                <!-- Filtres de recherche -->
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <input type="text" class="form-control form-control-sm" placeholder="Rechercher un client..." style="width: 200px;">
+                                    <select class="form-select form-select-sm" style="width: 180px;">
+                                        <option value="">Tous les statuts</option>
+                                        <option value="attente">En attente</option>
+                                        <option value="accepte">Accepté</option>
+                                        <option value="preparation">En préparation</option>
+                                        <option value="livraison">En cours de livraison</option>
+                                        <option value="livre">Livré</option>
+                                        <option value="materiel">Attente retour matériel</option>
+                                        <option value="terminee">Terminée</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Prestation</th>
+                                            <th>Statut Actuel</th>
+                                            <th>Actions logistiques</th>
+                                            <th class="text-end">Sécurité / Annulation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Jean Dupont</strong>
+<small class="text-muted">06 12 34 56 78</small></td>
+                                            <td>Buffet Champêtre (15 pers.)
+<small class="text-muted">Le 28/07/2026 à 12:00</small></td>
+                                            <td><span class="badge bg-warning text-dark">En attente</span></td>
+                                            <td>
+                                                <select class="form-select form-select-sm" onchange="handleStatusChange(this.value)">
+                                                    <option value="attente" selected>En attente</option>
+                                                    <option value="accepte">Accepté</option>
+                                                    <option value="prep">En préparation</option>
+                                                    <option value="livraison">En cours de livraison</option>
+                                                    <option value="livre">Livré</option>
+                                                    <option value="retour">Attente retour matériel</option>
+                                                    <option value="terminee">Terminée</option>
+                                                </select>
+                                            </td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                                    <i class="bi bi-telephone-x me-1"></i>Annuler/Modifier
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modération des Avis -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm p-4 rounded">
+                            <h3 class="h5 fw-bold text-dark mb-3"><i class="bi bi-chat-left-heart me-2"></i>Modération des Avis Clients</h3>
+                            <div class="border rounded p-3 bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <span class="text-warning">⭐⭐⭐⭐⭐</span> <strong>Par Michel F.</strong>
+                                    <p class="mb-0 small text-muted">"Prestation exceptionnelle pour notre mariage, le buffet froid du Sud-Ouest a ravi nos convives !"</p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-success" onclick="alert('Avis validé et publié sur la page d\'accueil !')">Valider</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="alert('Avis refusé.')">Refuser</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 3. ESPACE ADMINISTRATEUR (JOSÉ) -->
+            <!-- ========================================== -->
+            <div id="space-admin" class="role-section d-none">
+                <!-- Section Employés -->
+                <div class="card border-0 shadow-sm p-4 mb-4 rounded">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                        <h3 class="h5 fw-bold text-dark mb-0"><i class="bi bi-people me-2"></i>Gestion du Personnel (Employés)</h3>
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                            <i class="bi bi-person-plus me-1"></i>Créer un compte Employé
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Identifiant (Email)</th>
+                                    <th>Rôle</th>
+                                    <th>Statut de l'accès</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>pierre.employe@viteetgourmand.fr</td>
+                                    <td>Employé</td>
+                                    <td><span class="badge bg-success">Actif</span></td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-danger" onclick="confirm('Voulez-vous suspendre l\'accès de cet employé ?')">Désactiver l'accès</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section Statistiques & Business Intelligence de José -->
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm p-4 h-100 rounded">
+                            <h3 class="h5 fw-bold text-dark mb-3">Ventes de Menus (Données NoSQL)</h3>
+                            <div style="height: 300px;">
+                                <canvas id="chartMenus"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm p-4 h-100 rounded">
+                            <h3 class="h5 fw-bold text-dark mb-3">Calculateur de Chiffre d'Affaires</h3>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small">Du</label>
+                                    <input type="date" class="form-control form-control-sm" value="2026-01-01">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Au</label>
+                                    <input type="date" class="form-control form-control-sm" value="2026-12-31">
+                                </div>
+                            </div>
+                            <div class="bg-success-subtle text-success p-4 rounded text-center">
+                                <span class="d-block small text-uppercase fw-semibold">Chiffre d'Affaires Généré</span>
+                                <span class="fs-1 fw-bold">14 250,00 €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODALE DE SÉCURITÉ : ANNULATION/MODIFICATION EMPLOYÉ -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-fill-exclamation me-2"></i>Contrôle de Sécurité</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-danger fw-semibold">Règle de l'entreprise : Vous devez obligatoirement contacter le client avant d'annuler ou modifier sa commande.</p>
+                    <form onsubmit="alert('Action enregistrée. Le client a été notifié.'); bootstrap.Modal.getInstance(document.getElementById('cancelModal')).hide(); return false;">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mode de contact utilisé</label>
+                            <select class="form-select" required>
+                                <option value="gsm">Appel Téléphonique (GSM)</option>
+                                <option value="mail">Courrier Électronique (Mail)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Motif détaillé de l'annulation ou modification</label>
+                            <textarea class="form-control" rows="3" placeholder="Saisissez le motif convenu avec le client..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Valider et enregistrer l'action</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE : CRÉER UN COMPTE EMPLOYÉ (ADMIN ONLY) -->
+    <div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold">Nouveau Compte Collaborateur</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form onsubmit="alert('Compte créé ! Un mail de notification a été envoyé à l\'employé. Il devra vous demander son mot de passe initial.'); bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal')).hide(); return false;">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Adresse email de l'employé</label>
+                            <input type="email" class="form-control" required placeholder="nom.prenom@viteetgourmand.fr">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Définir le mot de passe initial</label>
+                            <input type="password" class="form-control" required placeholder="Min. 10 caractères, 1 majuscule, 1 caractère spécial">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Créer le compte</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pied de page -->
+    <footer class="bg-dark text-white py-4 mt-auto border-top border-secondary">
+        <div class="container text-center">
+            <p class="text-white-50 mb-0 small">© 2026 Vite & Gourmand - Espace d'administration sécurisé.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SCRIPT DE GESTION DES RÔLES ET STATISTIQUES -->
+    <script>
+        // 1. Logique de bascule de rôle (Simulation Front-end)
+        function switchRole(role) {
+            document.querySelectorAll('.role-section').forEach(section => {
+                section.classList.add('d-none');
+            });
+            
+            const badge = document.getElementById('roleBadge');
+            
+            if (role === 'user') {
+                document.getElementById('space-user').classList.remove('d-none');
+                badge.textContent = "Espace Client";
+                badge.className = "badge bg-secondary ms-2 fs-6";
+            } else if (role === 'employee') {
+                document.getElementById('space-employee').classList.remove('d-none');
+                badge.textContent = "Espace Employé";
+                badge.className = "badge bg-warning text-dark ms-2 fs-6";
+            } else if (role === 'admin') {
+                document.getElementById('space-employee').classList.remove('d-none'); // L'admin a accès à tout l'espace employé
+                document.getElementById('space-admin').classList.remove('d-none');
+                badge.textContent = "Espace Administrateur (José)";
+                badge.className = "badge bg-danger ms-2 fs-6";
+                initAdminChart(); // Charger le graphique
+            }
+        }
+
+        // 2. Alerte de pénalité de prêt de matériel (Spécifications CGV)
+        function handleStatusChange(status) {
+            if (status === 'retour') {
+                alert("ALERTE SYSTÈME : Le client va recevoir un mail automatique l'informant qu'il dispose de 10 jours ouvrés pour restituer le matériel prêté sous peine d'une facturation forfaitaire de 600,00 € (conforme à l'article 5 des CGV).");
+            }
+        }
+
+        // 3. Initialisation du graphique de José (Chart.js)
+        let myChart = null;
+        function initAdminChart() {
+            const ctx = document.getElementById('chartMenus').getContext('2d');
+            if (myChart) myChart.destroy(); // Éviter la superposition de graphiques
+            
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Buffet Champêtre', 'Éveil des Sens', 'Magie de Noël', 'Douceurs de Pâques', 'Éclat Vegan'],
+                    datasets: [{
+                        label: 'Nombre de commandes',
+                        data: [42, 28, 15, 19, 12],
+                        backgroundColor: '#198754',
+                        borderColor: '#146c43',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialisation par défaut sur le rôle utilisateur
+        switchRole('user');
+    </script>
+</body>
+</html>

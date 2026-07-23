@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finaliser votre Commande - Vite & Gourmand</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Mon CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <!-- Menu de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="index.html">Vite & Gourmand</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="menus.html">Nos Menus</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.html">Connexion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- En-tête -->
+    <section class="bg-success text-white text-center py-4">
+        <div class="container">
+            <h1 class="h2 fw-bold mb-0"><i class="bi bi-cart-check me-2"></i>Espace Commande</h1>
+        </div>
+    </section>
+
+    <!-- Formulaire de Commande -->
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+            <form id="orderForm" class="needs-validation" novalidate>
+                <div class="row g-4">
+                    
+                    <!-- Colonne de gauche : Informations de livraison & Client -->
+                    <div class="col-lg-7">
+                        
+                        <!-- Section 1 : Vos Coordonnées (Auto-remplies) -->
+                        <div class="card border-0 shadow-sm p-4 mb-4 rounded">
+                            <h3 class="h5 fw-bold text-success mb-4"><i class="bi bi-person-bounding-box me-2"></i>1. Vos Coordonnées</h3>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Nom</label>
+                                    <input type="text" id="clientNom" class="form-control bg-light" readonly>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Prénom</label>
+                                    <input type="text" id="clientPrenom" class="form-control bg-light" readonly>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Adresse Email</label>
+                                    <input type="email" id="clientEmail" class="form-control bg-light" readonly>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Téléphone (GSM)</label>
+                                    <input type="tel" id="clientTel" class="form-control bg-light" readonly>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3"><i class="bi bi-info-circle me-1"></i>Ces informations sont issues de votre compte utilisateur.</small>
+                        </div>
+
+                        <!-- Section 2 : Détails de la Prestation -->
+                        <div class="card border-0 shadow-sm p-4 rounded">
+                            <h3 class="h5 fw-bold text-success mb-4"><i class="bi bi-truck me-2"></i>2. Lieu, Date & Heure de Prestation</h3>
+                            
+                            <div class="mb-3">
+                                <label for="deliveryCity" class="form-label fw-semibold">Ville de livraison</label>
+                                <select id="deliveryCity" class="form-select" required>
+                                    <option value="bordeaux" selected>Bordeaux (Livraison Gratuite)</option>
+                                    <option value="hors-bordeaux">Hors Bordeaux (Forfait 5€ + 0.59€/km)</option>
+                                </select>
+                            </div>
+
+                            <div id="kmInputContainer" class="mb-3 d-none">
+                                <label for="deliveryKm" class="form-label fw-semibold">Distance depuis l'atelier de Bordeaux (en km)</label>
+                                <input type="number" id="deliveryKm" class="form-control" min="1" placeholder="Ex: 15">
+                                <div class="invalid-feedback">Veuillez indiquer une distance valide en kilomètres.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="deliveryAddress" class="form-label fw-semibold">Adresse exacte de livraison</label>
+                                <input type="text" id="deliveryAddress" class="form-control" placeholder="Indiquez la rue, le code postal et la ville" required>
+                                <div class="invalid-feedback">Veuillez renseigner une adresse exacte de livraison.</div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label for="deliveryDate" class="form-label fw-semibold">Date souhaitée</label>
+                                    <input type="date" id="deliveryDate" class="form-control" required>
+                                    <div class="invalid-feedback">Veuillez choisir une date de livraison.</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="deliveryTime" class="form-label fw-semibold">Heure de livraison</label>
+                                    <input type="time" id="deliveryTime" class="form-control" required>
+                                    <div class="invalid-feedback">Veuillez choisir une heure de livraison.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonne de droite : Choix du menu & Facturation -->
+                    <div class="col-lg-5">
+                        
+                        <!-- Section 3 : Choix de la formule -->
+                        <div class="card border-0 shadow-sm p-4 mb-4 rounded">
+                            <h3 class="h5 fw-bold text-success mb-4"><i class="bi bi-journal-text me-2"></i>3. Votre Formule</h3>
+                            
+                            <div class="mb-3">
+                                <label for="menuSelect" class="form-label fw-semibold">Sélectionnez votre menu</label>
+                                <select id="menuSelect" class="form-select" required>
+                                    <!-- Rempli dynamiquement -->
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="guestCount" class="form-label fw-semibold">Nombre de convives</label>
+                                <input type="number" id="guestCount" class="form-control" min="1" required>
+                                <div id="minGuestsAlert" class="form-text text-danger d-none"></div>
+                            </div>
+
+                            <!-- Alerte de réduction de 10% de Julie -->
+                            <div id="promoAlert" class="alert alert-success d-none py-2 px-3 mb-0 rounded" role="alert">
+                                <i class="bi bi-gift-fill me-2"></i><strong>Félicitations !</strong> Réduction de 10% appliquée (minimum requis dépassé de 5 personnes ou plus).
+                            </div>
+                        </div>
+
+                        <!-- Section 4 : Récapitulatif & Devis Détaillé -->
+                        <div class="card border-0 shadow-sm p-4 rounded">
+                            <h3 class="h5 fw-bold text-dark border-bottom pb-2 mb-3">Récapitulatif de facturation</h3>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Prix unitaire de la formule</span>
+                                <span id="pricePerGuest" class="fw-semibold">0.00 €</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Sous-total menu</span>
+                                <span id="subtotalMenu" class="fw-semibold">0.00 €</span>
+                            </div>
+                            <div id="discountRow" class="d-flex justify-content-between mb-2 text-success d-none">
+                                <span>Réduction Julie (-10%)</span>
+                                <span id="discountVal">-0.00 €</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Frais de livraison</span>
+                                <span id="deliveryCost" class="fw-semibold">Gratuit</span>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="fs-5 fw-bold">Montant Total TTC</span>
+                                <span id="totalCost" class="fs-3 fw-bold text-success">0.00 €</span>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm">
+                                <i class="bi bi-check-circle-fill me-2"></i>Confirmer ma commande
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Pied de page -->
+    <footer class="bg-dark text-white pt-5 pb-3 mt-auto">
+        <div class="container text-center">
+            <p class="text-white-50 mb-0 small">© 2026 Vite & Gourmand. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script de calcul dynamique de la commande -->
+    <script>
+                // 1. Éléments du DOM
+        const selectMenu = document.getElementById('menuSelect');
+        const inputGuests = document.getElementById('guestCount');
+        const selectCity = document.getElementById('deliveryCity');
+        const inputKm = document.getElementById('deliveryKm');
+        const kmContainer = document.getElementById('kmInputContainer');
+        const minGuestsAlert = document.getElementById('minGuestsAlert');
+        const promoAlert = document.getElementById('promoAlert');
+        
+        // Éléments du récapitulatif financier
+        const labelPricePerGuest = document.getElementById('pricePerGuest');
+        const labelSubtotalMenu = document.getElementById('subtotalMenu');
+        const labelDiscountRow = document.getElementById('discountRow');
+        const labelDiscountVal = document.getElementById('discountVal');
+        const labelDeliveryCost = document.getElementById('deliveryCost');
+        const labelTotalCost = document.getElementById('totalCost');
+
+        // Variables globales pour stocker les données chargées depuis le serveur
+        let activeUser = null;
+        let menusList = [];
+
+        // 2. Chargement initial des données depuis le serveur (API)
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // A. Récupérer les informations de l'utilisateur connecté
+                const userResponse = await fetch('/api/auth/me'); // Nous allons créer cette route simple
+                if (!userResponse.ok) {
+                    alert("Veuillez vous connecter pour accéder à l'espace commande.");
+                    window.location.href = "login.html";
+                    return;
+                }
+                activeUser = await userResponse.json();
+
+                // Remplissage automatique des champs coordonnées
+                document.getElementById('clientNom').value = activeUser.nom;
+                document.getElementById('clientPrenom').value = activeUser.prenom;
+                document.getElementById('clientEmail').value = activeUser.email;
+                document.getElementById('clientTel').value = activeUser.telephone;
+                document.getElementById('deliveryAddress').value = activeUser.adresse_facturation;
+
+                // B. Récupérer les menus disponibles en BDD
+                const menusResponse = await fetch('/api/menus'); // Nous allons créer cette route
+                menusList = await menusResponse.json();
+
+                // Remplissage dynamique du sélecteur de menus
+                selectMenu.innerHTML = '';
+                menusList.forEach(menu => {
+                    const option = document.createElement('option');
+                    option.value = menu.id;
+                    option.textContent = `${menu.titre} (Min. ${menu.min_personnes} pers.)`;
+                    selectMenu.appendChild(option);
+                });
+
+                // Récupération de l'ID du menu passé en paramètre URL (ex: commande.html?menu=3)
+                const urlParams = new URLSearchParams(window.location.search);
+                const menuIdParam = urlParams.get('menu');
+                if (menuIdParam) {
+                    selectMenu.value = menuIdParam;
+                }
+
+                // Premier calcul
+                updateMenuDetails();
+
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation :", error);
+                alert("Erreur de communication avec le serveur.");
+            }
+        });
+
+        // 3. Mise à jour des détails du menu sélectionné
+        function updateMenuDetails() {
+            const selectedMenu = menusList.find(m => m.id == selectMenu.value);
+            if (selectedMenu) {
+                inputGuests.min = selectedMenu.min_personnes;
+                if (!inputGuests.value || parseInt(inputGuests.value) < selectedMenu.min_personnes) {
+                    inputGuests.value = selectedMenu.min_personnes;
+                }
+                calculateTotal();
+            }
+        }
+
+        // 4. Calcul global de la commande (Logique métier identique au Back-end pour validation visuelle)
+        function calculateTotal() {
+            const selectedMenu = menusList.find(m => m.id == selectMenu.value);
+            if (!selectedMenu) return;
+
+            const guests = parseInt(inputGuests.value) || 0;
+            
+            // Validation du minimum de personnes
+            if (guests < selectedMenu.min_personnes) {
+                minGuestsAlert.textContent = `Attention : Ce menu nécessite un minimum de ${selectedMenu.min_personnes} personnes.`;
+                minGuestsAlert.classList.remove('d-none');
+            } else {
+                minGuestsAlert.classList.add('d-none');
+            }
+
+            // Calcul du prix de base
+            let menuCost = parseFloat(selectedMenu.prix_min);
+            if (guests > selectedMenu.min_personnes) {
+                const extraGuests = guests - selectedMenu.min_personnes;
+                menuCost += (extraGuests * 25.00); // Tarif standard convive supp.
+            }
+
+            // Règle de Julie : Réduction de 10% si le menu est un événement de pâtisserie et dépasse 250€
+            let discount = 0;
+            if (selectedMenu.theme === 'evenement' && menuCost > 250.00) {
+                discount = menuCost * 0.10;
+                promoAlert.classList.remove('d-none');
+                labelDiscountRow.classList.remove('d-none');
+                labelDiscountVal.textContent = `- ${discount.toFixed(2)} €`;
+            } else {
+                promoAlert.classList.add('d-none');
+                labelDiscountRow.classList.add('d-none');
+            }
+
+            // Règle de José : Frais de livraison hors Bordeaux (2.50 € / km)
+            let deliveryCost = 0;
+            if (selectCity.value === 'hors-bordeaux') {
+                const km = parseFloat(inputKm.value) || 0;
+                deliveryCost = km * 2.50;
+                labelDeliveryCost.textContent = `${deliveryCost.toFixed(2)} €`;
+            } else {
+                labelDeliveryCost.textContent = "Gratuit";
+            }
+
+            // Calcul du total final affiché
+            const finalTotal = menuCost - discount + deliveryCost;
+
+            // Affichage dans le récapitulatif
+            labelPricePerGuest.textContent = `${(menuCost / guests).toFixed(2)} € (moyenne)`;
+            labelSubtotalMenu.textContent = `${menuCost.toFixed(2)} €`;
+            labelTotalCost.textContent = `${finalTotal.toFixed(2)} €`;
+        }
+
+        // 5. Écouteurs d'événements pour recalculer en temps réel
+        selectMenu.addEventListener('change', updateMenuDetails);
+        inputGuests.addEventListener('input', calculateTotal);
+        
+        selectCity.addEventListener('change', () => {
+            if (selectCity.value === 'hors-bordeaux') {
+                kmContainer.classList.remove('d-none');
+                inputKm.required = true;
+            } else {
+                kmContainer.classList.add('d-none');
+                inputKm.required = false;
+                inputKm.value = '';
+            }
+            calculateTotal();
+        });
+        inputKm.addEventListener('input', calculateTotal);
+
+        // 6. Envoi de la commande réelle au serveur Node.js
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                return;
+            }
+
+            const orderPayload = {
+                menuId: parseInt(selectMenu.value),
+                datePrestation: document.getElementById('deliveryDate').value,
+                heurePrestation: document.getElementById('deliveryTime').value,
+                adresseLivraison: document.getElementById('deliveryAddress').value,
+                villeLivraison: selectCity.value === 'bordeaux' ? 'Bordeaux' : 'Hors Bordeaux',
+                distanceKm: selectCity.value === 'hors-bordeaux' ? parseFloat(inputKm.value || 0) : 0,
+                nombreConvives: parseInt(inputGuests.value)
+            };
+
+            try {
+                const response = await fetch('/api/orders/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderPayload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(`Commande validée avec succès ! Un mail de confirmation récapitulant les détails de votre prestation a été envoyé. Montant final calculé : ${data.commande.total_ttc} €`);
+                    window.location.href = "index.html";
+                } else {
+                    alert("Erreur lors de la validation : " + (data.error || "Impossible de traiter la commande."));
+                }
+            } catch (error) {
+                console.error("Erreur réseau :", error);
+                alert("Impossible de joindre le serveur.");
+            }
+        });
+    </script>
+</body>
+</html>

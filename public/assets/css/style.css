@@ -1,0 +1,348 @@
+/* ============ POLICES D'ÉCRITURE ============ */
+/* Importation de Playfair Display pour les titres élégants (Doit être placé au tout début du fichier) */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+/* ============ VARIABLES GLOBALES ============ */
+:root {
+    --couleur-verte: #198754;      /* Vert Bootstrap success */
+    --couleur-verte-rgb: 25, 135, 84;
+    --couleur-or: #d4af37;         /* Doré pour les séparateurs et accents */
+    --couleur-fonce: #212529;      /* Fond du footer */
+    --couleur-gris-clair: #f8f9fa; /* Fond des sections claires */
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ============ NAVIGATION ============ */
+.navbar {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+}
+
+.nav-link {
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+/* ============ HERO & EN-TÊTES ============ */
+.hero-section {
+    /* Le dégradé linéaire (linear-gradient) permet d'assombrir légèrement l'image pour que votre texte blanc reste parfaitement lisible */
+    background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), 
+                url('../images/bandeau.jpg'); /* <-- Chemin vers votre image */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 70vh;
+    display: flex;
+    align-items: center; /* Centre verticalement le contenu */
+}
+
+.hero-section h1 {
+    letter-spacing: 2px;
+}
+
+.hero-section .btn {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 0;
+}
+
+/* En-tête de la page menus.html */
+section.bg-success {
+    background-color: var(--couleur-verte) !important;
+}
+
+section.bg-success h1 {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 1px;
+}
+
+/* ============ CARTES & FORMULES ============ */
+.card {
+    border-radius: 2px; /* Garde le style angulaire d'origine */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Mise en valeur de la formule la plus populaire */
+.border-success.border-2 {
+    border-color: var(--couleur-verte) !important;
+}
+
+/* Badges personnalisés */
+.badge {
+    border-radius: 0; /* Alignement sur le style angulaire des boutons */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+    padding: 0.5em 0.8em;
+}
+
+.badge.rounded-pill {
+    border-radius: 50rem !important; /* Exception pour les pilules d'accentuation */
+}
+
+/* ============ BOUTONS ============ */
+.btn {
+    border-radius: 0; /* Style angulaire et moderne */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background-color: var(--couleur-verte);
+    border-color: var(--couleur-verte);
+}
+
+.btn-success:hover {
+    background-color: #146c43;
+    border-color: #13653f;
+}
+
+.btn-outline-success {
+    color: var(--couleur-verte);
+    border-color: var(--couleur-verte);
+}
+
+.btn-outline-success:hover {
+    background-color: var(--couleur-verte);
+    border-color: var(--couleur-verte);
+}
+
+.btn-light {
+    background-color: #fff;
+    color: var(--couleur-verte) !important;
+    border: 1px solid #fff;
+}
+
+.btn-light:hover {
+    background-color: var(--couleur-gris-clair);
+    color: #146c43 !important;
+}
+
+/* ============ SECTIONS & TITRES ============ */
+section h2 {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 1px;
+}
+
+/* Petite séparation dorée sous les titres principaux de section */
+section h2::after {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 2px;
+    background-color: var(--couleur-or);
+    margin: 15px auto 0;
+}
+
+/* Exception pour les titres des catégories de menus (alignés à gauche avec ligne continue) */
+.mb-5 h2.text-success::after,
+div h2.text-success::after {
+    display: none; /* Désactive le centrage doré pour les sous-titres de catégories */
+}
+
+.border-success-subtle {
+    border-color: rgba(var(--couleur-verte-rgb), 0.25) !important;
+}
+
+/* Séparateur pour le menu assis */
+@media (min-width: 768px) {
+    .border-end-md {
+        border-inline: 1px solid rgba(0, 0, 0, 0.1); /* Utilise la bordure par défaut de Bootstrap */
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* ============ FOOTER ============ */
+footer {
+    background-color: var(--couleur-fonce) !important;
+}
+
+footer h5 {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 1px;
+}
+
+footer a {
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: var(--couleur-or) !important; /* Effet de survol doré sur les liens du footer */
+}
+
+/* ============ FORMULAIRES & AUTHENTIFICATION ============ */
+.auth-card {
+    border-radius: 0; /* Alignement sur le style angulaire de votre charte */
+    overflow: hidden;
+}
+
+/* Style des onglets d'authentification */
+.auth-card .nav-tabs {
+    border-bottom: 2px solid var(--couleur-gris-clair);
+}
+
+.auth-card .nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    transition: all 0.3s ease;
+}
+
+.auth-card .nav-tabs .nav-link:hover {
+    color: var(--couleur-verte);
+    background-color: rgba(var(--couleur-verte-rgb), 0.05);
+}
+
+.auth-card .nav-tabs .nav-link.active {
+    color: var(--couleur-verte);
+    border-bottom-color: var(--couleur-verte);
+    background-color: #fff;
+}
+
+/* Éléments de formulaire */
+.form-control {
+    border-radius: 0; /* Style angulaire */
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 0.75rem;
+}
+
+.form-control:focus {
+    border-color: var(--couleur-verte);
+    box-shadow: 0 0 0 0.25rem rgba(var(--couleur-verte-rgb), 0.15);
+}
+
+.input-group-text {
+    border-radius: 0;
+    border: 1px solid #dee2e6;
+}
+
+/* Modale de réinitialisation de mot de passe */
+.modal-content {
+    border-radius: 0;
+}
+
+.modal-header {
+    border-radius: 0;
+}
+
+/* Désactivation de la ligne dorée sous les titres de la boîte d'authentification */
+.auth-card h2::after {
+    display: none !important;
+}
+
+/* ============ PAGE CONTACT ============ */
+
+/* Boîte d'icône ronde pour les coordonnées */
+.icon-box {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Carte Google Maps */
+.map-container {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0;
+}
+
+.map-container iframe {
+    display: block;
+}
+
+/* Style des champs de sélection */
+.form-select {
+    border-radius: 0;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 2.25rem 0.6rem 0.75rem;
+}
+
+.form-select:focus {
+    border-color: var(--couleur-verte);
+    box-shadow: 0 0 0 0.25rem rgba(var(--couleur-verte-rgb), 0.15);
+}
+
+/* Désactivation de la ligne dorée sous les titres de la page contact */
+.contact-info-card h2::after,
+.col-lg-7 h2::after {
+    display: none !important;
+}
+
+/* Style des liens juridiques du footer */
+footer .list-unstyled .small {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+footer .list-unstyled .small:hover {
+    opacity: 1;
+    color: var(--couleur-or) !important;
+}
+
+/* ============ ESPACE PROFESSIONNEL (ADMIN & EMPLOYÉ) ============ */
+
+/* Enlever la ligne dorée décorative sur l'interface d'administration */
+.navbar-dark .navbar-brand span.badge {
+    font-size: 0.7rem !important;
+    letter-spacing: 0;
+}
+
+main h1.h2::after,
+.card-header h3::after {
+    display: none !important;
+}
+
+/* Tableaux d'administration */
+.table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+.table td {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+/* Boutons d'actions rapides */
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 0;
+}
+
+.btn-group-sm .btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Badges de l'administration */
+.badge.rounded-pill {
+    font-size: 0.7rem;
+    font-weight: 600;
+}

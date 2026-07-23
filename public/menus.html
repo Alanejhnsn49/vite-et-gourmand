@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos Menus - Vite & Gourmand | Traiteur Bordeaux</title>
+    <meta name="description" content="Découvrez notre sélection de menus traiteur à Bordeaux. Filtrez selon vos envies, régimes alimentaires et budgets.">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Mon CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <!-- Menu de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="index.html">Vite & Gourmand</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="menus.html">Nos Menus</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.html">Connexion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- En-tête de la page -->
+    <section class="bg-success text-white text-center py-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Notre Carte & Menus</h1>
+            <p class="lead mb-0">Des formules d'exception adaptées à toutes vos exigences et régimes alimentaires.</p>
+        </div>
+    </section>
+
+    <!-- Section Principale : Filtres + Catalogue -->
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+            <div class="row g-4">
+                
+                <!-- Barre latérale : Filtres de recherche -->
+                <div class="col-lg-3">
+                    <div class="card border-0 shadow-sm p-4 sticky-lg-top rounded" style="top: 20px; z-index: 10;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold text-success mb-0"><i class="bi bi-sliders me-2"></i>Filtres</h5>
+                            <button id="btnResetFilters" class="btn btn-link p-0 text-muted text-decoration-none small">Réinitialiser</button>
+                        </div>
+
+                        <!-- Filtre Thème -->
+                        <div class="mb-4">
+                            <label for="filterTheme" class="form-label fw-semibold small text-uppercase text-muted">Thème</label>
+                            <select id="filterTheme" class="form-select bg-light">
+                                <option value="all">Tous les thèmes</option>
+                                <option value="classique">Classique</option>
+                                <option value="noel">Noël</option>
+                                <option value="paques">Pâques</option>
+                                <option value="evenement">Événement</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtre Régime -->
+                        <div class="mb-4">
+                            <label for="filterRegime" class="form-label fw-semibold small text-uppercase text-muted">Régime</label>
+                            <select id="filterRegime" class="form-select bg-light">
+                                <option value="all">Tous les régimes</option>
+                                <option value="classique">Classique</option>
+                                <option value="vegetarien">Végétarien</option>
+                                <option value="vegan">Vegan</option>
+                                <option value="sans-gluten">Sans Gluten</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtre Nombre de personnes minimum -->
+                        <div class="mb-4">
+                            <label for="filterMinPers" class="form-label fw-semibold small text-uppercase text-muted">Nb. personnes minimum</label>
+                            <input type="number" id="filterMinPers" class="form-control bg-light" placeholder="Ex: 10" min="1">
+                        </div>
+
+                        <!-- Filtre Prix Max -->
+                        <div class="mb-4">
+                            <label for="filterPriceRange" class="form-label fw-semibold small text-uppercase text-muted d-flex justify-content-between">
+                                <span>Prix maximum</span>
+                                <span id="priceVal" class="text-success fw-bold">1000 €</span>
+                            </label>
+                            <input type="range" id="filterPriceRange" class="form-range" min="50" max="1000" step="10" value="1000">
+                        </div>
+
+                        <!-- Filtre Fourchette de Prix (Boutons radios rapides) -->
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small text-uppercase text-muted">Tranche de budget</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="budgetRadio" id="budgetAll" value="all" checked>
+                                <label class="form-check-label small" for="budgetAll">Tous les budgets</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="budgetRadio" id="budget1" value="0-200">
+                                <label class="form-check-label small" for="budget1">Moins de 200 €</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="budgetRadio" id="budget2" value="200-500">
+                                <label class="form-check-label small" for="budget2">200 € à 500 €</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="budgetRadio" id="budget3" value="500-1000">
+                                <label class="form-check-label small" for="budget3">Plus de 500 €</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grille du catalogue de menus -->
+                <div class="col-lg-9">
+                    <div id="menusContainer" class="row g-4">
+                        <!-- Les cartes de menus seront générées dynamiquement ici par JavaScript -->
+                    </div>
+                    
+                    <!-- Message si aucun résultat -->
+                    <div id="noResults" class="text-center py-5 d-none">
+                        <i class="bi bi-search fs-1 text-muted d-block mb-3"></i>
+                        <h4 class="fw-bold">Aucun menu ne correspond à vos critères</h4>
+                        <p class="text-muted">Essayez de modifier ou de réinitialiser vos filtres de recherche.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALE UNIQUE DYNAMIQUE : DÉTAILS DU MENU -->
+    <div class="modal fade" id="menuDetailsModal" tabindex="-1" aria-labelledby="menuDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="menuDetailsModalLabel">Détails du Menu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" id="modalDynamicContent">
+                    <!-- Rempli dynamiquement par JS -->
+                </div>
+                <div class="modal-footer border-top p-3">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <a href="contact.html" class="btn btn-success px-4">Demander un devis</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pied de page -->
+    <footer class="bg-dark text-white pt-5 pb-3 mt-auto">
+        <div class="container text-center">
+            <p class="text-white-50 mb-0 small">© 2026 Vite & Gourmand. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SCRIPT DE GESTION ET FILTRES DYNAMIQUES -->
+    <script>
+        // 1. Base de données des menus (Simulée localement pour le front-end)
+        const menusData = [
+            {
+                id: 1,
+                titre: "Le Buffet Champêtre du Sud-Ouest",
+                description: "Un buffet convivial mettant à l'honneur les trésors culinaires de notre région, préparé avec soin par le chef José.",
+                images: [
+                    "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
+                ],
+                theme: "classique",
+                regime: "classique",
+                minPersonnes: 15,
+                prixMin: 290.00, // Prix pour 15 pers (soit ~19.30€/pers)
+                stock: 8,
+                conditions: "À commander au moins 5 jours ouvrés à l'avance. À conserver entre 0°C et 4°C.",
+                plats: {
+                    entrees: [
+                        { nom: "Planche de charcuteries fines du terroir", allergenes: ["Sulfite"] },
+                        { nom: "Terrine de canard maison aux pistaches", allergenes: ["Fruits à coque", "Sulfite"] }
+                    ],
+                    plats: [
+                        { nom: "Manchons de canard confits et pommes de terre sarladaises", allergenes: [] }
+                    ],
+                    desserts: [
+                        { nom: "Cannelés bordelais croustillants", allergenes: ["Gluten", "Lactose", "Œufs"] }
+                    ]
+                }
+            },
+            {
+                id: 2,
+                titre: "Éveil des Sens (Végétarien)",
+                description: "Une expérience gastronomique raffinée et 100% végétarienne conçue par la chef Julie autour des légumes de saison.",
+                images: [
+                    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80"
+                ],
+                theme: "evenement",
+                regime: "vegetarien",
+                minPersonnes: 10,
+                prixMin: 380.00, // Prix pour 10 pers (soit 38€/pers)
+                stock: 4,
+                conditions: "À commander au moins 4 jours ouvrés à l'avance. À consommer sous 24h après livraison.",
+                plats: {
+                    entrees: [
+                        { nom: "Velouté de potimarron aux éclats de châtaignes", allergenes: ["Lactose"] },
+                        { nom: "Tartare de betterave et chèvre frais aux herbes", allergenes: ["Lactose"] }
+                    ],
+                    plats: [
+                        { nom: "Risotto crémeux aux champignons sauvages et huile de truffe", allergenes: ["Lactose"] }
+                    ],
+                    desserts: [
+                        { nom: "Poire pochée au vin rouge épicé et glace vanille", allergenes: ["Sulfite"] }
+                    ]
+                }
+            },
+            {
+                id: 3,
+                titre: "La Magie de Noël",
+                description: "Une formule féérique et haut de gamme pour vos repas de fin d'année en famille ou en entreprise.",
+                images: [
+                    "https://images.unsplash.com/photo-1545048702-79362596cdc9?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1575549594211-8f3769c0966a?auto=format&fit=crop&w=800&q=80"
+                ],
+                theme: "noel",
+                regime: "classique",
+                minPersonnes: 8,
+                prixMin: 480.00, // Prix pour 8 pers (soit 60€/pers)
+                stock: 3,
+                conditions: "Disponible uniquement en décembre. Commande requise 2 semaines à l'avance.",
+                plats: {
+                    entrees: [
+                        { nom: "Foie gras de canard mi-cuit et son chutney de figues", allergenes: ["Sulfite"] }
+                    ],
+                    plats: [
+                        { nom: "Chapon farci aux marrons, écrasé de céleri-rave", allergenes: ["Lactose"] }
+                    ],
+                    desserts: [
+                        { nom: "Bûche signature au chocolat noir de dégustation", allergenes: ["Gluten", "Lactose", "Soja"] }
+                    ]
+                }
+            },
+            {
+                id: 4,
+                titre: "Douceurs de Pâques",
+                description: "Célébrez le printemps avec ce menu traditionnel revisité mettant en valeur l'agneau de lait et le chocolat.",
+                images: [
+                    "https://images.unsplash.com/photo-1625604087024-7fb428fc4626?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                ],
+                theme: "paques",
+                regime: "classique",
+                minPersonnes: 6,
+                prixMin: 210.00, // Prix pour 6 pers
+                stock: 5,
+                conditions: "Disponible pour la période de Pâques. Commande requise 7 jours à l'avance.",
+                plats: {
+                    entrees: [
+                        { nom: "Asperges vertes rôties, sauce mousseline légère", allergenes: ["Œufs"] }
+                    ],
+                    plats: [
+                        { nom: "Gigot d'agneau de sept heures confit au romarin", allergenes: [] }
+                    ],
+                    desserts: [
+                        { nom: "Entremets nid de Pâques au praliné croustillant", allergenes: ["Gluten", "Lactose", "Fruits à coque"] }
+                    ]
+                }
+            },
+            {
+                id: 5,
+                titre: "Éclat Vegan & Sans Gluten",
+                description: "Un menu d'une grande finesse technique, entièrement végétalien et naturellement exempt de gluten.",
+                images: [
+                    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80"
+                ],
+                theme: "evenement",
+                regime: "vegan",
+                minPersonnes: 12,
+                prixMin: 420.00, // Prix pour 12 pers
+                stock: 6,
+                conditions: "À commander au moins 5 jours à l'avance. Préparé dans un atelier manipulant du gluten.",
+                plats: {
+                    entrees: [
+                        { nom: "Maki de légumes croquants et avocat, sauce sésame", allergenes: ["Sésame"] }
+                    ],
+                    plats: [
+                        { nom: "Curry thaï de légumes oubliés au lait de coco et riz basmati parfumé", allergenes: [] }
+                    ],
+                    desserts: [
+                        { nom: "Panna cotta végétale au lait d'amande et coulis de mangue", allergenes: ["Fruits à coque"] }
+                    ]
+                }
+            }
+        ];
+
+        // 2. Sélection des éléments DOM
+        const container = document.getElementById('menusContainer');
+        const noResults = document.getElementById('noResults');
+        const filterTheme = document.getElementById('filterTheme');
+        const filterRegime = document.getElementById('filterRegime');
+        const filterMinPers = document.getElementById('filterMinPers');
+        const filterPriceRange = document.getElementById('filterPriceRange');
+        const priceVal = document.getElementById('priceVal');
+        const btnReset = document.getElementById('btnResetFilters');
+        const budgetRadios = document.getElementsByName('budgetRadio');
+
+        // 3. Fonction d'affichage des cartes de menus
+        function displayMenus(menus) {
+            container.innerHTML = "";
+            if (menus.length === 0) {
+                noResults.classList.remove('d-none');
+                return;
+            }
+            noResults.classList.add('d-none');
+
+            menus.forEach(menu => {
+                const cardHtml = `
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card h-100 border-0 shadow-sm overflow-hidden d-flex flex-column justify-content-between rounded">
+                            <div>
+                                <div class="position-relative">
+                                    <img src="${menu.images[0]}" class="card-img-top" alt="${menu.titre}" style="height: 200px; object-fit: cover;">
+                                    <span class="badge bg-success position-absolute top-0 end-0 m-3">${menu.regime}</span>
+                                    <span class="badge bg-dark position-absolute top-0 start-0 m-3">${menu.theme}</span>
+                                </div>
+                                <div class="card-body p-4">
+                                    <h4 class="card-title fw-bold text-dark h5 mb-3">${menu.titre}</h4>
+                                    <p class="card-text text-muted small line-clamp-3">${menu.description}</p>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 p-4 pt-0">
+                                <hr class="text-muted opacity-25 mt-0 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <small class="text-muted d-block">Dès ${menu.minPersonnes} personnes</small>
+                                        <span class="fs-4 fw-bold text-success">${menu.prixMin.toFixed(2)} €</span>
+                                    </div>
+                                    <span class="badge bg-light text-muted border">Stock : ${menu.stock} restants</span>
+                                </div>
+                                <button class="btn btn-outline-success w-100 py-2 fw-semibold" onclick="openMenuDetails(${menu.id})">
+                                    Voir le détail
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        // 4. Moteur de filtrage dynamique
+        function filterMenus() {
+            const themeValue = filterTheme.value;
+            const regimeValue = filterRegime.value;
+            const minPersValue = parseInt(filterMinPers.value) || 0;
+            const maxPriceValue = parseFloat(filterPriceRange.value);
+            
+            // Récupération de la tranche de budget sélectionnée
+            let budgetValue = "all";
+            for (const radio of budgetRadios) {
+                if (radio.checked) {
+                    budgetValue = radio.value;
+                    break;
+                }
+            }
+
+            const filtered = menusData.filter(menu => {
+                // Filtre Thème
+                if (themeValue !== "all" && menu.theme !== themeValue) return false;
+                
+                // Filtre Régime
+                if (regimeValue !== "all" && menu.regime !== regimeValue) return false;
+                
+                // Filtre Nb Personnes Minimum
+                if (minPersValue > 0 && menu.minPersonnes < minPersValue) return false;
+                
+                // Filtre Prix Max (Curseur)
+                if (menu.prixMin > maxPriceValue) return false;
+
+                // Filtre Tranche de Budget (Radios)
+                if (budgetValue !== "all") {
+                    const [min, max] = budgetValue.split('-').map(Number);
+                    if (max) {
+                        if (menu.prixMin < min || menu.prixMin > max) return false;
+                    } else { // Cas du "Plus de 500"
+                        if (menu.prixMin < min) return false;
+                    }
+                }
+
+                return true;
+            });
+
+            displayMenus(filtered);
+        }
+
+        // 5. Événements de contrôle des filtres
+        filterTheme.addEventListener('change', filterMenus);
+        filterRegime.addEventListener('change', filterMenus);
+        filterMinPers.addEventListener('input', filterMenus);
+        
+        filterPriceRange.addEventListener('input', (e) => {
+            priceVal.textContent = `${e.target.value} €`;
+            filterMenus();
+        });
+
+        budgetRadios.forEach(radio => {
+            radio.addEventListener('change', filterMenus);
+        });
+
+        // Bouton Réinitialiser
+        btnReset.addEventListener('click', () => {
+            filterTheme.value = "all";
+            filterRegime.value = "all";
+            filterMinPers.value = "";
+            filterPriceRange.value = 1000;
+            priceVal.textContent = "1000 €";
+            document.getElementById('budgetAll').checked = true;
+            filterMenus();
+        });
+
+        // Simulation de l'état de connexion (à des fins de démonstration front-end)
+        const isUserLoggedIn = false; 
+
+        // 6. Affichage des Détails du Menu dans la Modale
+        function openMenuDetails(menuId) {
+            const menu = menusData.find(m => m.id === menuId);
+            if (!menu) return;
+
+            const modalContent = document.getElementById('modalDynamicContent');
+            
+            // Génération du carrousel d'images
+            let carouselHtml = `<img src="${menu.images[0]}" class="img-fluid w-100" style="max-height: 350px; object-fit: cover;" alt="${menu.titre}">`;
+            if (menu.images.length > 1) {
+                carouselHtml = `
+                    <div id="carouselMenu" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            ${menu.images.map((img, index) => `
+                                <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                                    <img src="${img}" class="d-block w-100" style="max-height: 350px; object-fit: cover;" alt="Image du menu">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselMenu" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselMenu" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Génération de la liste des plats et allergènes
+            const formatPlat = (plat) => {
+                const allergenesText = plat.allergenes.length > 0 
+                    ? `<span class="badge bg-danger-subtle text-danger fw-normal ms-2" style="font-size: 0.75rem;" title="Allergènes : ${plat.allergenes.join(', ')}">Allergènes : ${plat.allergenes.join(', ')}</span>` 
+                    : '';
+                return `<li class="mb-3 text-dark fw-medium">${plat.nom} ${allergenesText}</li>`;
+            };
+
+            modalContent.innerHTML = `
+                ${carouselHtml}
+                <div class="p-4 p-md-5">
+                    
+                    <!-- Titre, Régime et Thème -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                        <h3 class="fw-bold text-success mb-0">${menu.titre}</h3>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-success-subtle text-success border border-success px-3 py-2">${menu.regime.toUpperCase()}</span>
+                            <span class="badge bg-dark text-white px-3 py-2">${menu.theme.toUpperCase()}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-muted mb-4 fs-5">${menu.description}</p>
+                    
+                    <!-- Conditions du menu -->
+                    <div class="alert alert-warning border-warning border-2 d-flex align-items-start p-4 mb-4 rounded" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-3 me-3 mt-1"></i>
+                        <div>
+                            <h5 class="alert-heading fw-bold text-dark mb-1">Conditions obligatoires de commande :</h5>
+                            <p class="mb-0 text-dark fw-semibold">${menu.conditions}</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Composition détaillée -->
+                        <div class="col-md-7">
+                            <h4 class="h5 fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-egg-fried me-2 text-success"></i>Composition du Menu</h4>
+                            
+                            <h6 class="fw-bold text-muted small text-uppercase mb-2">Entrées</h6>
+                            <ul class="ps-3 mb-4">
+                                ${menu.plats.entrees.map(formatPlat).join('')}
+                            </ul>
+
+                            <h6 class="fw-bold text-muted small text-uppercase mb-2">Plats principaux</h6>
+                            <ul class="ps-3 mb-4">
+                                ${menu.plats.plats.map(formatPlat).join('')}
+                            </ul>
+
+                            <h6 class="fw-bold text-muted small text-uppercase mb-2">Desserts</h6>
+                            <ul class="ps-3">
+                                ${menu.plats.desserts.map(formatPlat).join('')}
+                            </ul>
+                        </div>
+                        
+                        <!-- Informations de commande -->
+                        <div class="col-md-5">
+                            <div class="card bg-light border-0 p-4 h-100 justify-content-between rounded">
+                                <div>
+                                    <h4 class="h5 fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-2 text-success"></i>Tarification</h4>
+                                    <p class="small text-muted mb-2"><strong>Minimum requis :</strong> ${menu.minPersonnes} personnes</p>
+                                    <p class="small text-muted mb-2"><strong>Prix total (pour ${menu.minPersonnes} pers.) :</strong></p>
+                                    <div class="fs-2 fw-bold text-success mb-3">${menu.prixMin.toFixed(2)} €</div>
+                                    <p class="small text-muted mb-0"><strong>Stock disponible :</strong> <span class="badge bg-danger">${menu.stock} commandes restantes</span></p>
+                                </div>
+                                
+                                <!-- Bouton de commande dynamique -->
+                                <div class="mt-4">
+                                    <button onclick="handleOrder(${menu.id})" class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm">
+                                        <i class="bi bi-cart-plus-fill me-2"></i>Commander ce menu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Affichage de la modale
+            const modal = new bootstrap.Modal(document.getElementById('menuDetailsModal'));
+            modal.show();
+        }
+
+        // 7. Gestion de la redirection de commande selon l'état d'authentification
+        function handleOrder(menuId) {
+            if (isUserLoggedIn) {
+                window.location.href = `commande.html?menu=${menuId}`;
+            } else {
+                alert("Pour commander ce menu, vous devez d'abord vous connecter ou créer un compte.");
+                window.location.href = `login.html?redirect=commande&menu=${menuId}`;
+            }
+        }
+
+        // Initialisation automatique du catalogue au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            filterMenus();
+        });
+    </script>
+</body>
+</html>
