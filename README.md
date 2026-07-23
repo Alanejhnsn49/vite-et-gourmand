@@ -12,7 +12,7 @@ PostgreSQL (v14+)
 Git
 
 Étape 1 : Clonage du projet
-git clone https://github.com/votre-compte/vite-et-gourmand.git
+git clone https://github.com/Alanejhnsn49/vite-et-gourmand.git
 cd vite-et-gourmand
 
 Étape 2 : Configuration de la base de données
