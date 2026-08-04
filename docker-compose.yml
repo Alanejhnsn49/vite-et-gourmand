@@ -50,6 +50,25 @@ services:
       retries: 5
 
   # ---------------------------------------------------------------
+  # Serveur SMTP de developpement : Mailpit
+  #
+  # Il capture tous les emails envoyes par l'application sans jamais les
+  # transmettre a un vrai destinataire, et les affiche dans une interface
+  # web. Cela permet de tester les parcours d'envoi sans compte mail reel
+  # et sans risque d'ecrire a de vraies adresses depuis un jeu de test.
+  # Interface web : http://localhost:8025
+  # ---------------------------------------------------------------
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: vg_mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Interface web
+    environment:
+      MP_MAX_MESSAGES: 500
+
+  # ---------------------------------------------------------------
   # Application Node / Express
   # ---------------------------------------------------------------
   app:
@@ -61,9 +80,20 @@ services:
         condition: service_healthy
       mongo:
         condition: service_started
+      mailpit:
+        condition: service_started
     environment:
       PORT: 3000
       SESSION_SECRET: ${SESSION_SECRET:-change_moi_en_production}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      # Serveur SMTP : mailpit en developpement, un vrai relais en production
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_SECURE: ${MAIL_SECURE:-false}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-Vite & Gourmand <contact@viteetgourmand.fr>}
+      MAIL_CONTACT: ${MAIL_CONTACT:-contact@viteetgourmand.fr}
       # A l'interieur du reseau Docker, l'hote n'est pas localhost
       # mais le nom du service declare ci-dessus.
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-vite_gourmand}

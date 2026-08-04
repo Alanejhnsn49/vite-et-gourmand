@@ -1,11 +1,40 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
+const mail = require('../services/mailService');
+
+/**
+ * Règle du cahier des charges : "mot de passe sécurisé (10 caractères
+ * minimum constitué au minima d'un caractère spécial, une majuscule, une
+ * minuscule, un chiffre)".
+ *
+ * Vérifiée côté serveur : un attribut pattern sur le formulaire est
+ * contournable dès que la requête est forgée hors du navigateur.
+ */
+function validerMotDePasse(motDePasse) {
+    const manques = [];
+    if (typeof motDePasse !== 'string' || motDePasse.length < 10) {
+        manques.push('10 caractères minimum');
+    }
+    if (!/[A-Z]/.test(motDePasse || '')) manques.push('une majuscule');
+    if (!/[a-z]/.test(motDePasse || '')) manques.push('une minuscule');
+    if (!/[0-9]/.test(motDePasse || '')) manques.push('un chiffre');
+    if (!/[^A-Za-z0-9]/.test(motDePasse || '')) manques.push('un caractère spécial');
+    return manques;
+}
 
 // 1. INSCRIPTION
 exports.register = async (req, res) => {
     const { nom, prenom, email, mot_de_passe, telephone, adresse_facturation } = req.body;
 
     try {
+        const manques = validerMotDePasse(mot_de_passe);
+        if (manques.length > 0) {
+            return res.status(400).json({
+                error: "Le mot de passe ne respecte pas les exigences de sécurité.",
+                manquant: manques,
+            });
+        }
+
         // Vérifier si l'email existe déjà
         const userExists = await db.query('SELECT * FROM utilisateurs WHERE email = $1', [email]);
         if (userExists.rows.length > 0) {
@@ -26,6 +55,10 @@ exports.register = async (req, res) => {
         const newUser = await db.query(insertQuery, [
             nom, prenom, email, hashedPassword, telephone, adresse_facturation
         ]);
+
+        // Email de bienvenue automatique. Un échec d'envoi ne remet pas
+        // l'inscription en cause : le compte est créé, l'erreur est journalisée.
+        await mail.envoyerBienvenue(newUser.rows[0]);
 
         res.status(201).json({
             message: "Inscription réussie !",
