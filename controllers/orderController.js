@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const analytics = require('../services/analyticsService');
 
 exports.createOrder = async (req, res) => {
     const { menuId, datePrestation, heurePrestation, adresseLivraison, villeLivraison, distanceKm, nombreConvives } = req.body;
@@ -51,6 +52,11 @@ exports.createOrder = async (req, res) => {
 
         // 7. Décrémenter le stock du menu commandé
         await db.query('UPDATE menus SET stock = stock - 1 WHERE id = $1', [menuId]);
+
+        // 8. Enregistrer l'événement analytique dans la base non relationnelle.
+        // Volontairement placé après l'enregistrement en base relationnelle :
+        // une indisponibilité de MongoDB ne doit jamais faire échouer une vente.
+        await analytics.enregistrerCommande(newOrder.rows[0], menu);
 
         res.status(201).json({
             message: "Commande enregistrée avec succès !",

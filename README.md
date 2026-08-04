@@ -1,56 +1,85 @@
-Projet ECF du développeur web et web mobile (a terminer)
+# Vite & Gourmand
 
-Application pour l'entreprise Vite et gourmand
+Application web de gestion de menus et de commandes pour un service traiteur, développée dans le cadre de l'ECF du Titre Professionnel Développeur Web et Web Mobile.
 
-L'environnement a été standardisé pour être déployable en local en moins de 5 minutes par n'importe quel développeur de l'équipe.
-
-Deux méthodes sont proposées. La première est recommandée.
+> Projet en cours de finalisation. La section [État d'avancement](#état-davancement) détaille précisément ce qui est implémenté et ce qui reste à faire.
 
 ---
 
-## Méthode 1 (recommandée) : installation avec Docker
+## Sommaire
+
+- [Stack technique](#stack-technique)
+- [Installation avec Docker](#installation-avec-docker-recommandé)
+- [Installation manuelle](#installation-manuelle)
+- [Structure du projet](#structure-du-projet)
+- [Variables d'environnement](#variables-denvironnement)
+- [API](#api)
+- [Sécurité](#sécurité)
+- [Workflow git](#workflow-git)
+- [État d'avancement](#état-davancement)
+
+---
+
+## Stack technique
+
+| Couche | Technologie | Justification |
+|---|---|---|
+| Front-end | HTML5, CSS3, JavaScript | Pas de framework : le référentiel évalue la maîtrise des interfaces natives |
+| Back-end | Node.js 24, Express 4 | Écosystème unifié en JavaScript, montée en charge asynchrone adaptée à une API REST |
+| Base relationnelle | PostgreSQL 16 | Respect des contraintes d'intégrité référentielle, types stricts, requêtes préparées natives via `pg` |
+| Base non relationnelle | MongoDB 7 | Stockage des événements analytiques, dont le volume et le schéma évoluent librement |
+| Sessions | `express-session` | Sessions serveur, cookie `httpOnly` et `sameSite: strict` |
+| Mots de passe | `bcrypt` | Hachage lent avec sel, coût 12 |
+| Conteneurisation | Docker et Docker Compose | Environnement identique sur toutes les machines et en production |
+
+---
+
+## Installation avec Docker (recommandé)
 
 ### Prérequis
 
-- Docker Desktop (Windows ou macOS) ou Docker Engine avec le plugin Compose (Linux)
+- Docker Desktop (Windows, macOS) ou Docker Engine avec le plugin Compose (Linux)
 - Git
 
-Aucune installation locale de Node.js, PostgreSQL ou MongoDB n'est nécessaire : les trois services sont fournis par les conteneurs.
+Aucune installation locale de Node.js, PostgreSQL ou MongoDB n'est nécessaire.
 
-### Étape 1 : Clonage du projet
+### Étape 1 : cloner le projet
 
 ```bash
 git clone https://github.com/Alanejhnsn49/vite-et-gourmand.git
+```
+
+```bash
 cd vite-et-gourmand
 ```
 
-### Étape 2 : Configuration
+### Étape 2 : créer le fichier d'environnement
 
 ```bash
 cp .env.example .env
 ```
 
-Le fichier `.env.example` documente toutes les variables attendues. Les valeurs par défaut suffisent pour un environnement de développement local. En production, `SESSION_SECRET` et les mots de passe des bases doivent impérativement être remplacés.
+Les valeurs par défaut conviennent pour un environnement de développement. En production, `SESSION_SECRET` et les mots de passe des bases doivent impérativement être remplacés.
 
-### Étape 3 : Lancement
+### Étape 3 : lancer la pile
 
 ```bash
 docker compose up -d --build
 ```
 
-L'application est alors disponible sur http://localhost:3000
+L'application est disponible sur http://localhost:3000
 
 ### Ce que fait la commande
 
 | Service | Image | Port | Rôle |
 |---|---|---|---|
 | `app` | construite depuis le `Dockerfile` | 3000 | API Express et fichiers statiques |
-| `db` | `postgres:16-alpine` | 5432 | Base de données relationnelle |
-| `mongo` | `mongo:7` | 27017 | Base de données non relationnelle (données analytiques) |
+| `db` | `postgres:16-alpine` | 5432 | Base relationnelle |
+| `mongo` | `mongo:7` | 27017 | Base non relationnelle, données analytiques |
 
-Au premier démarrage, PostgreSQL joue automatiquement `database/schema.sql` puis `database/seed.sql`. Aucune commande manuelle n'est nécessaire pour créer les tables ou injecter le jeu de test.
+Au premier démarrage, PostgreSQL exécute automatiquement `database/schema.sql` puis `database/seed.sql`. Aucune commande manuelle n'est nécessaire pour créer les tables ou injecter le jeu de test.
 
-Le service `app` attend que PostgreSQL réponde à son `healthcheck` avant de démarrer, ce qui évite les erreurs de connexion au lancement.
+Le service `app` attend que PostgreSQL réponde à son `healthcheck` avant de démarrer.
 
 ### Commandes utiles
 
@@ -60,7 +89,7 @@ Consulter l'état des services :
 docker compose ps
 ```
 
-Lire les journaux de l'application :
+Suivre les journaux de l'application :
 
 ```bash
 docker compose logs -f app
@@ -72,73 +101,202 @@ Arrêter les services en conservant les données :
 docker compose down
 ```
 
-Tout réinitialiser, y compris les données des bases :
+Tout réinitialiser, données comprises :
 
 ```bash
 docker compose down -v
 ```
 
-### Justification des choix techniques
+### Justification des choix de conteneurisation
 
-**Pourquoi Docker.** L'énoncé impose une base relationnelle et une base non relationnelle. Sans conteneurisation, chaque développeur devrait installer et configurer PostgreSQL et MongoDB à la main, avec des versions potentiellement différentes. Docker garantit que l'environnement est strictement identique sur toutes les machines et en production, ce qui supprime la classe de bugs du « ça marche chez moi ».
+**Pourquoi Docker.** L'énoncé impose une base relationnelle et une base non relationnelle. Sans conteneurisation, chaque développeur devrait installer et configurer PostgreSQL et MongoDB manuellement, avec des versions potentiellement divergentes. Docker garantit un environnement strictement identique partout, ce qui supprime la classe de bugs du « ça marche chez moi ».
 
-**Pourquoi des images Alpine.** L'image `node:24-alpine` et `postgres:16-alpine` sont nettement plus légères que leurs équivalents complets, ce qui réduit le temps de construction et la surface d'attaque.
+**Pourquoi des images Alpine.** `node:24-alpine` et `postgres:16-alpine` sont nettement plus légères que leurs équivalents complets, ce qui réduit le temps de construction et la surface d'attaque.
 
-**Pourquoi copier `package*.json` avant le reste du code.** Docker met chaque instruction en cache. En isolant l'installation des dépendances, une simple modification du code source ne relance pas un `npm ci` complet.
+**Pourquoi copier `package*.json` avant le reste du code.** Docker met chaque instruction en cache. En isolant l'installation des dépendances, une modification du code source ne relance pas un `npm ci` complet.
 
 **Pourquoi `npm ci` plutôt que `npm install`.** `npm ci` installe exactement les versions figées dans `package-lock.json`, là où `npm install` peut les faire dériver. C'est la garantie d'une construction reproductible.
 
-**Pourquoi un `healthcheck` sur PostgreSQL.** Un conteneur démarré n'est pas un conteneur prêt. Sans cette condition, l'application tenterait de se connecter à une base qui n'accepte pas encore les connexions.
+**Pourquoi un healthcheck sur PostgreSQL.** Un conteneur démarré n'est pas un conteneur prêt. Sans la condition `service_healthy`, l'application tenterait de se connecter avant que la base accepte les connexions.
 
 **Pourquoi des volumes nommés.** `pgdata` et `mongodata` permettent d'arrêter et de relancer les conteneurs sans perdre les données.
 
 ---
 
-## Méthode 2 : installation manuelle
+## Installation manuelle
 
 ### Prérequis
 
-- Node.js (v18+)
-- PostgreSQL (v14+)
-- MongoDB (v7+)
+- Node.js 18 ou supérieur
+- PostgreSQL 14 ou supérieur
+- MongoDB 7 ou supérieur
 - Git
 
-### Étape 1 : Clonage du projet
+### Étapes
 
 ```bash
 git clone https://github.com/Alanejhnsn49/vite-et-gourmand.git
+```
+
+```bash
 cd vite-et-gourmand
 ```
 
-### Étape 2 : Configuration de la base de données
+```bash
+cp .env.example .env
+```
 
-1. Connectez-vous à votre SGBD local.
-2. Créez une base de données nommée `vite_gourmand`.
-3. Exécutez le script de structure : `psql -U user -d vite_gourmand -f database/schema.sql`
-4. Injectez les données de test : `psql -U user -d vite_gourmand -f database/seed.sql`
+Créer ensuite une base nommée `vite_gourmand`, puis :
 
-### Étape 3 : Lancement de l'application
+```bash
+psql -U postgres -d vite_gourmand -f database/schema.sql
+```
+
+```bash
+psql -U postgres -d vite_gourmand -f database/seed.sql
+```
 
 ```bash
 npm install
+```
+
+```bash
 npm start
 ```
 
-L'application tourne sur http://localhost:3000
-
-**Justification de nos choix :** l'utilisation de deux fichiers SQL distincts (`schema.sql` pour la structure et `seed.sql` pour les données de test) permet de réinitialiser l'environnement de test instantanément sans corrompre la structure de production.
+**Pourquoi deux fichiers SQL distincts.** `schema.sql` porte la structure, `seed.sql` porte les données de test. Cette séparation permet de réinitialiser un jeu de données sans toucher à la structure, et inversement de faire évoluer la structure sans dépendre des données.
 
 ---
 
-3.	Énumérez les mécanismes de sécurité que vous avez mis en place, aussi bien sur vos formulaires que sur les composants front-end ainsi que back-end. 
+## Structure du projet
 
-A. Sécurité Front-End (Formulaires et Navigation)
-•	Validation HTML5 & Regex : Tous les formulaires (contact, commande, connexion) possèdent des attributs required, min, max et des masques de saisie (Regex) pour valider le format des emails, numéros de téléphone et dates de prestation avant soumission.
-•	Protection contre les doubles soumissions : Désactivation systématique des boutons de validation après le premier clic pour éviter les doublons de commandes.
-•	Navigation Gardée : Blocage côté client des accès aux pages d'administration pour les utilisateurs non connectés ou ne possédant pas le rôle requis.
+```
+.
+├── config/
+│   ├── db.js              Connexion PostgreSQL (pool pg)
+│   └── mongo.js           Connexion MongoDB
+├── controllers/           Logique métier
+├── database/
+│   ├── schema.sql         Création des tables
+│   └── seed.sql           Jeu de données de test
+├── maquette/              Maquettes desktop et mobile (PDF)
+├── middleware/
+│   └── auth.js            Contrôle d'authentification et de rôle
+├── public/                Front-end statique servi par Express
+├── routes/                Définition des routes de l'API
+├── Dockerfile
+├── docker-compose.yml
+└── server.js              Point d'entrée
+```
 
-B. Sécurité Back-End & Base de Données
-•	Protection contre les Injections SQL : Utilisation stricte de requêtes préparées (Prepared Statements) avec liaison de paramètres typés. Aucune variable utilisateur n'est concaténée directement dans les requêtes SQL.
-•	Hachage des mots de passe : Utilisation de l'algorithme de hachage fort bcrypt (avec un coût de 12) pour stocker les mots de passe.
-•	Contrôle d'accès basé sur les rôles (RBAC) : Vérification systématique du rôle de l'utilisateur stocké dans la session serveur (req.session.user.role) avant de délivrer l'accès aux routes API sensibles (ex: modification des stocks ou validation d'un avis).
-•	Protection XSS : Échappement systématique des données saisies par les utilisateurs avant tout affichage sur le site (notamment pour les commentaires des avis clients).
+---
+
+## Variables d'environnement
+
+Toutes les variables sont documentées dans `.env.example`. Le fichier `.env` réel n'est jamais versionné.
+
+| Variable | Rôle |
+|---|---|
+| `PORT` | Port d'écoute du serveur Express |
+| `SESSION_SECRET` | Clé de signature des cookies de session |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Identifiants PostgreSQL |
+| `MONGO_USER`, `MONGO_PASSWORD`, `MONGO_DB` | Identifiants MongoDB |
+| `DATABASE_URL` | Chaîne de connexion PostgreSQL |
+| `MONGO_URL` | Chaîne de connexion MongoDB |
+
+Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiquement pour pointer vers les services `db` et `mongo` du réseau interne, et non vers `localhost`.
+
+---
+
+## API
+
+| Méthode | Route | Authentification | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | non | Création d'un compte utilisateur |
+| `POST` | `/api/auth/login` | non | Connexion |
+| `POST` | `/api/auth/logout` | non | Déconnexion |
+| `GET` | `/api/auth/me` | oui | Profil de l'utilisateur connecté |
+| `GET` | `/api/menus` | non | Liste des menus disponibles |
+| `POST` | `/api/orders/create` | oui | Création d'une commande |
+| `GET` | `/api/analytics/menus` | rôle `admin` | Commandes et chiffre d'affaires par menu, données du graphique de comparaison |
+| `GET` | `/api/analytics/chiffre-affaires` | rôle `admin` | Chiffre d'affaires global et détail par menu |
+| `GET` | `/api/analytics/evolution` | rôle `admin` | Évolution jour par jour |
+| `GET` | `/api/status` | non | Vérification de disponibilité |
+
+Les trois routes analytiques acceptent les filtres `menuId`, `dateDebut` et `dateFin`, combinables.
+
+### Répartition des données entre les deux bases
+
+**PostgreSQL** porte les données transactionnelles : utilisateurs, menus, commandes, avis. Elles exigent des contraintes d'intégrité fortes et un schéma stable.
+
+**MongoDB** porte les données analytiques. Un document est écrit dans la collection `evenements_commandes` à chaque commande passée. Ces documents sont nombreux, jamais modifiés après coup, et leur structure doit pouvoir évoluer sans migration. Les agrégations qui alimentent l'espace administrateur sont exécutées directement par le moteur Mongo via un pipeline `$match`, `$group`, `$project`, `$sort`, avec des index sur `menu_id` et `date_commande`.
+
+L'écriture analytique est volontairement placée après l'enregistrement en base relationnelle et n'interrompt jamais le parcours : une indisponibilité de MongoDB fait perdre une statistique, jamais une vente.
+
+Les composants d'accès sont isolés dans `services/analyticsService.js`. Aucun contrôleur n'écrit de requête MongoDB directement.
+
+---
+
+## Sécurité
+
+Cette section distingue volontairement ce qui est **effectivement implémenté** de ce qui **reste à faire**. Toute mesure annoncée ci-dessous comme implémentée est vérifiable dans le code.
+
+### Mesures implémentées
+
+**Protection contre les injections SQL.** Toutes les requêtes utilisent des requêtes préparées avec liaison de paramètres (`$1`, `$2`). Aucune variable issue de l'utilisateur n'est concaténée dans une requête. Vérifiable dans `controllers/`.
+
+**Hachage des mots de passe.** `bcrypt` avec un coût de 12. Le mot de passe en clair n'est jamais stocké ni journalisé. Vérifiable dans `controllers/authController.js`.
+
+**Cookies de session durcis.** `httpOnly` empêche la lecture du cookie par JavaScript, ce qui limite l'impact d'une faille XSS. `sameSite: 'strict'` bloque l'envoi du cookie lors d'une requête inter-site, ce qui constitue une protection CSRF. Durée de vie limitée à 24 heures. Vérifiable dans `server.js`.
+
+**Secrets hors du dépôt.** `.env` est exclu par `.gitignore`. Seul `.env.example`, qui ne contient aucune valeur réelle, est versionné.
+
+**Contrôle d'authentification.** Le middleware `isAuthenticated` rejette toute requête sans session valide sur les routes protégées.
+
+**Contrôle d'accès par rôle.** Le middleware `hasRole` protège les routes `/api/analytics/*`, réservées au rôle `admin`. Le rôle est lu dans la session serveur, jamais dans une valeur transmise par le client, ce qui empêche toute élévation de privilège par manipulation de la requête. Un compte `client` authentifié reçoit un code 403.
+
+**Filtrage typé des paramètres d'agrégation.** Les valeurs de filtre transmises aux pipelines MongoDB sont converties et validées avant usage. Aucune donnée utilisateur ne peut être interprétée comme un opérateur Mongo, ce qui est l'équivalent NoSQL de la protection contre les injections.
+
+### Mesures à implémenter
+
+**Échappement XSS en sortie.** Aucun échappement systématique n'est en place à ce jour. Il deviendra indispensable dès l'affichage des avis clients, qui sont du texte libre.
+
+**Validation des données côté serveur.** La validation repose actuellement sur les attributs HTML5 côté client, qui sont contournables. Une validation serveur doit être ajoutée sur l'ensemble des points d'entrée.
+
+**Limitation du nombre de tentatives de connexion.** Aucune protection contre le bourrage d'identifiants n'est en place.
+
+---
+
+## Workflow git
+
+Le dépôt suit le flux imposé par l'énoncé.
+
+- `main` : branche principale, ne reçoit que du code testé
+- `developpement` : branche d'intégration
+- `feat/*` et `fix/*` : une branche par fonctionnalité ou correction, issue de `developpement` et fusionnée dans `developpement` après test
+
+---
+
+## État d'avancement
+
+Le livret d'évaluation a identifié trois compétences à repasser. Voici l'état de chacune.
+
+| Compétence | État |
+|---|---|
+| CPT 1 : installer et configurer son environnement de travail | Traité, environnement conteneurisé et documenté |
+| CPT 2 : composants d'accès aux données SQL et NoSQL | Traité, MongoDB branché avec écriture d'événements, agrégations filtrables et index |
+| CPT 3 : composants métier côté serveur | En cours |
+
+### Reste à implémenter
+
+- Correction des règles de gestion tarifaires, qui ne correspondent pas à l'énoncé
+- Envoi d'emails : bienvenue, réinitialisation de mot de passe, confirmation de commande, retour de matériel, invitation à déposer un avis
+- Réinitialisation de mot de passe
+- Filtres dynamiques sur la vue globale des menus, sans rechargement de page
+- Vue détaillée d'un menu
+- Cycle de vie complet d'une commande et son suivi client
+- Espace utilisateur, espace employé, espace administrateur
+- Modération et affichage des avis
+- Formulaire de contact
+- Jeu de données de test avec des empreintes bcrypt valides
+- Conformité RGAA
