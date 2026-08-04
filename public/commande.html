@@ -229,15 +229,16 @@
                 document.getElementById('deliveryAddress').value = activeUser.adresse_facturation;
 
                 // B. Récupérer les menus disponibles en BDD
-                const menusResponse = await fetch('/api/menus'); // Nous allons créer cette route
-                menusList = await menusResponse.json();
+                const menusResponse = await fetch('/api/menus');
+                const menusPayload = await menusResponse.json();
+                menusList = menusPayload.menus;
 
                 // Remplissage dynamique du sélecteur de menus
                 selectMenu.innerHTML = '';
                 menusList.forEach(menu => {
                     const option = document.createElement('option');
                     option.value = menu.id;
-                    option.textContent = `${menu.titre} (Min. ${menu.min_personnes} pers.)`;
+                    option.textContent = `${menu.titre} (Min. ${menu.minPersonnes} pers.)`;
                     selectMenu.appendChild(option);
                 });
 
@@ -261,65 +262,94 @@
         function updateMenuDetails() {
             const selectedMenu = menusList.find(m => m.id == selectMenu.value);
             if (selectedMenu) {
-                inputGuests.min = selectedMenu.min_personnes;
-                if (!inputGuests.value || parseInt(inputGuests.value) < selectedMenu.min_personnes) {
-                    inputGuests.value = selectedMenu.min_personnes;
+                inputGuests.min = selectedMenu.minPersonnes;
+                if (!inputGuests.value || parseInt(inputGuests.value) < selectedMenu.minPersonnes) {
+                    inputGuests.value = selectedMenu.minPersonnes;
                 }
                 calculateTotal();
             }
         }
 
-        // 4. Calcul global de la commande (Logique métier identique au Back-end pour validation visuelle)
-        function calculateTotal() {
+        // 4. Calcul du prix
+        //
+        // Le calcul n'est PAS refait ici. Il est demandé au serveur via
+        // /api/orders/simuler, qui applique exactement les mêmes règles que
+        // la création de commande.
+        //
+        // Dupliquer les règles tarifaires dans le navigateur garantit qu'elles
+        // finiront par diverger de celles du serveur, et affiche alors au
+        // client un prix qui n'est pas celui qui lui sera facturé. Une seule
+        // source de vérité : services/tarificationService.js.
+        let simulationEnCours = null;
+
+        async function calculateTotal() {
             const selectedMenu = menusList.find(m => m.id == selectMenu.value);
             if (!selectedMenu) return;
 
             const guests = parseInt(inputGuests.value) || 0;
-            
-            // Validation du minimum de personnes
-            if (guests < selectedMenu.min_personnes) {
-                minGuestsAlert.textContent = `Attention : Ce menu nécessite un minimum de ${selectedMenu.min_personnes} personnes.`;
+
+            // Retour visuel immédiat sur le minimum de convives, sans attendre
+            // le serveur. Le serveur revérifie de toute façon.
+            if (guests < selectedMenu.minPersonnes) {
+                minGuestsAlert.textContent = `Attention : ce menu nécessite un minimum de ${selectedMenu.minPersonnes} personnes.`;
                 minGuestsAlert.classList.remove('d-none');
-            } else {
-                minGuestsAlert.classList.add('d-none');
+                return;
             }
+            minGuestsAlert.classList.add('d-none');
 
-            // Calcul du prix de base
-            let menuCost = parseFloat(selectedMenu.prix_min);
-            if (guests > selectedMenu.min_personnes) {
-                const extraGuests = guests - selectedMenu.min_personnes;
-                menuCost += (extraGuests * 25.00); // Tarif standard convive supp.
+            const payload = {
+                menuId: parseInt(selectMenu.value),
+                nombreConvives: guests,
+                villeLivraison: selectCity.value === 'bordeaux' ? 'Bordeaux' : 'Hors Bordeaux',
+                distanceKm: selectCity.value === 'hors-bordeaux' ? parseFloat(inputKm.value || 0) : 0
+            };
+
+            // Les saisies s'enchaînent vite (curseur, champ nombre). On garde
+            // uniquement la réponse de la dernière requête émise, pour éviter
+            // qu'une réponse tardive écrase une plus récente.
+            const jeton = Symbol('simulation');
+            simulationEnCours = jeton;
+
+            try {
+                const reponse = await fetch('/api/orders/simuler', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (simulationEnCours !== jeton) return;
+
+                const resultat = await reponse.json();
+
+                if (!reponse.ok) {
+                    minGuestsAlert.textContent = resultat.error || 'Impossible de calculer le prix.';
+                    minGuestsAlert.classList.remove('d-none');
+                    return;
+                }
+
+                const d = resultat.detail;
+
+                if (d.remise_applicable) {
+                    promoAlert.classList.remove('d-none');
+                    labelDiscountRow.classList.remove('d-none');
+                    labelDiscountVal.textContent = `- ${d.montant_remise.toFixed(2)} €`;
+                } else {
+                    promoAlert.classList.add('d-none');
+                    labelDiscountRow.classList.add('d-none');
+                }
+
+                labelDeliveryCost.textContent = d.hors_bordeaux
+                    ? `${d.frais_livraison.toFixed(2)} €`
+                    : 'Gratuit';
+
+                labelPricePerGuest.textContent = `${d.prix_par_personne.toFixed(2)} €`;
+                labelSubtotalMenu.textContent = `${d.prix_menu_brut.toFixed(2)} €`;
+                labelTotalCost.textContent = `${d.total_ttc.toFixed(2)} €`;
+            } catch (erreur) {
+                if (simulationEnCours !== jeton) return;
+                minGuestsAlert.textContent = 'Impossible de joindre le serveur pour calculer le prix.';
+                minGuestsAlert.classList.remove('d-none');
             }
-
-            // Règle de Julie : Réduction de 10% si le menu est un événement de pâtisserie et dépasse 250€
-            let discount = 0;
-            if (selectedMenu.theme === 'evenement' && menuCost > 250.00) {
-                discount = menuCost * 0.10;
-                promoAlert.classList.remove('d-none');
-                labelDiscountRow.classList.remove('d-none');
-                labelDiscountVal.textContent = `- ${discount.toFixed(2)} €`;
-            } else {
-                promoAlert.classList.add('d-none');
-                labelDiscountRow.classList.add('d-none');
-            }
-
-            // Règle de José : Frais de livraison hors Bordeaux (2.50 € / km)
-            let deliveryCost = 0;
-            if (selectCity.value === 'hors-bordeaux') {
-                const km = parseFloat(inputKm.value) || 0;
-                deliveryCost = km * 2.50;
-                labelDeliveryCost.textContent = `${deliveryCost.toFixed(2)} €`;
-            } else {
-                labelDeliveryCost.textContent = "Gratuit";
-            }
-
-            // Calcul du total final affiché
-            const finalTotal = menuCost - discount + deliveryCost;
-
-            // Affichage dans le récapitulatif
-            labelPricePerGuest.textContent = `${(menuCost / guests).toFixed(2)} € (moyenne)`;
-            labelSubtotalMenu.textContent = `${menuCost.toFixed(2)} €`;
-            labelTotalCost.textContent = `${finalTotal.toFixed(2)} €`;
         }
 
         // 5. Écouteurs d'événements pour recalculer en temps réel
