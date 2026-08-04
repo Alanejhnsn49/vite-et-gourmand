@@ -156,6 +156,45 @@ async function envoyerConfirmationCommande(utilisateur, commande, menu, detail) 
 }
 
 /**
+ * Lien de reinitialisation de mot de passe.
+ * Exige par le cahier des charges : "si le mot de passe est oublie, il pourra
+ * le reinitialiser via un bouton prevu a cet effet : un lien par mail lui sera
+ * envoye afin de l'inviter a le reinitialiser".
+ */
+async function envoyerReinitialisation(utilisateur, jeton, dureeMinutes) {
+    const lien = `${APP_URL}/reinitialisation.html?jeton=${encodeURIComponent(jeton)}`;
+
+    return envoyer({
+        to: utilisateur.email,
+        subject: 'Réinitialisation de votre mot de passe',
+        html: gabarit(`Bonjour ${echapper(utilisateur.prenom)},`, `
+            <p>Vous avez demande la reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.</p>
+            <p style="margin:24px 0;">
+              <a href="${lien}" style="background:#7c2d12;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Choisir un nouveau mot de passe</a>
+            </p>
+            <p style="font-size:13px;color:#6b7280;">Ce lien est valable ${dureeMinutes} minutes et ne peut servir qu'une seule fois.</p>
+            <p style="font-size:13px;color:#6b7280;">Si vous n'etes pas a l'origine de cette demande, ignorez simplement cet email : votre mot de passe actuel reste inchange.</p>
+            <p style="font-size:12px;color:#9ca3af;word-break:break-all;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>${lien}</p>
+        `),
+    });
+}
+
+/**
+ * Confirmation apres changement effectif du mot de passe.
+ * Permet a l'utilisateur de reagir si le changement ne vient pas de lui.
+ */
+async function envoyerConfirmationChangementMotDePasse(utilisateur) {
+    return envoyer({
+        to: utilisateur.email,
+        subject: 'Votre mot de passe a été modifié',
+        html: gabarit(`Bonjour ${echapper(utilisateur.prenom)},`, `
+            <p>Votre mot de passe vient d'etre modifie. Vous pouvez des maintenant vous connecter avec le nouveau.</p>
+            <p style="font-size:13px;color:#6b7280;">Si vous n'etes pas a l'origine de ce changement, contactez-nous immediatement a ${ADRESSE_CONTACT}.</p>
+        `),
+    });
+}
+
+/**
  * Transmission d'une demande de contact a l'entreprise.
  * Exige par le cahier des charges : "pour donner suite a cet envoi, la
  * demande est envoyee par mail a l'entreprise".
@@ -203,6 +242,8 @@ async function verifierConnexion() {
 module.exports = {
     envoyerBienvenue,
     envoyerConfirmationCommande,
+    envoyerReinitialisation,
+    envoyerConfirmationChangementMotDePasse,
     envoyerDemandeContact,
     envoyerAccuseContact,
     verifierConnexion,

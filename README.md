@@ -185,7 +185,7 @@ npm start
 │   └── mongo.js           Connexion MongoDB
 ├── controllers/           Logique métier
 ├── database/
-│   ├── schema.sql         Création des tables
+│   ├── schema.sql         Création des tables (5 tables)
 │   └── seed.sql           Jeu de données de test
 ├── maquette/              Maquettes desktop et mobile (PDF)
 ├── middleware/
@@ -195,6 +195,7 @@ npm start
 ├── services/
 │   ├── analyticsService.js      Accès aux données MongoDB
 │   ├── mailService.js           Envoi des emails et gabarits
+│   ├── reinitialisationService.js  Jetons de réinitialisation de mot de passe
 │   └── tarificationService.js   Règles de gestion tarifaires
 ├── Dockerfile
 ├── docker-compose.yml
@@ -232,6 +233,9 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `POST` | `/api/auth/login` | non | Connexion |
 | `POST` | `/api/auth/logout` | non | Déconnexion |
 | `GET` | `/api/auth/me` | oui | Profil de l'utilisateur connecté |
+| `POST` | `/api/auth/mot-de-passe-oublie` | non | Demande d'un lien de réinitialisation |
+| `GET` | `/api/auth/reinitialisation/:jeton` | non | Vérifie la validité d'un lien avant d'afficher le formulaire |
+| `POST` | `/api/auth/reinitialiser` | non | Enregistre le nouveau mot de passe |
 | `GET` | `/api/menus` | non | Liste des menus disponibles |
 | `POST` | `/api/orders/simuler` | oui | Détail tarifaire sans enregistrement, pour l'affichage du prix avant validation |
 | `POST` | `/api/orders/create` | oui | Création d'une commande |
@@ -289,6 +293,8 @@ Tous les envois passent par `services/mailService.js`. Les contrôleurs n'assemb
 |---|---|---|
 | Création d'un compte | le nouvel inscrit | Message de bienvenue et lien vers les menus |
 | Création d'une commande | le client | Récapitulatif complet, détail du prix, remise et livraison isolées |
+| Mot de passe oublié | le titulaire du compte | Lien de réinitialisation valable une heure |
+| Mot de passe modifié | le titulaire du compte | Confirmation, pour qu'il réagisse si la demande ne vient pas de lui |
 | Formulaire de contact | l'entreprise | Demande complète avec coordonnées de l'expéditeur |
 | Formulaire de contact | le visiteur | Accusé de réception |
 
@@ -352,6 +358,14 @@ Cette section distingue volontairement ce qui est **effectivement implémenté**
 - Création de commande : champs obligatoires, date de prestation non passée, nombre minimum de convives
 - Formulaire de contact : champs obligatoires, format d'adresse, longueurs maximales
 
+**Réinitialisation de mot de passe durcie.** Cinq mesures, toutes vérifiables dans `services/reinitialisationService.js` :
+
+- Le jeton est produit par `crypto.randomBytes(32)`, un générateur cryptographiquement sûr. `Math.random` est prédictible et ne doit jamais produire un secret
+- **Seule l'empreinte SHA-256 du jeton est stockée.** Le jeton en clair n'existe que dans le lien envoyé par email. Une fuite de la base ne permet donc pas de réinitialiser un compte
+- Le lien expire au bout d'une heure et ne peut servir **qu'une seule fois**
+- Toute nouvelle demande **invalide les jetons précédents** du même compte
+- **Aucune énumération de comptes possible.** La réponse est strictement identique que l'adresse existe ou non. Une réponse différenciée permettrait de découvrir quels comptes existent sur la plateforme
+
 **Échappement des données dans les emails.** Toute valeur issue d'un formulaire est échappée avant insertion dans un gabarit HTML, ce qui empêche l'injection de balisage dans un message lu par un employé.
 
 **Limitation du nombre de tentatives de connexion.** Aucune protection contre le bourrage d'identifiants n'est en place.
@@ -380,7 +394,6 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 
 ### Reste à implémenter
 
-- Réinitialisation de mot de passe par lien à durée limitée
 - Filtres dynamiques sur la vue globale des menus, sans rechargement de page
 - Vue détaillée d'un menu
 - Cycle de vie complet d'une commande et son suivi client, avec les emails de changement de statut

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouveau mot de passe - Vite &amp; Gourmand | Traiteur Bordeaux</title>
+    <meta name="description" content="Choisissez un nouveau mot de passe pour votre compte Vite &amp; Gourmand.">
+    <meta name="robots" content="noindex">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Mon CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <!-- Menu de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="index.html">Vite &amp; Gourmand</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Ouvrir le menu de navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="menus.html">Nos Menus</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.html">Connexion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-7 col-lg-5">
+                    <div class="bg-white p-4 p-md-5 shadow-sm rounded">
+
+                        <h1 class="h3 fw-bold text-success mb-4">Nouveau mot de passe</h1>
+
+                        <!-- Affiché pendant la vérification du lien -->
+                        <div id="etatChargement" class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Vérification du lien en cours</span>
+                            </div>
+                            <p class="text-muted mt-3 mb-0">Vérification du lien...</p>
+                        </div>
+
+                        <!-- Affiché si le lien est invalide ou expiré -->
+                        <div id="etatInvalide" class="d-none">
+                            <div class="alert alert-danger" role="alert">
+                                <p class="fw-semibold mb-1">Ce lien n'est plus utilisable.</p>
+                                <p class="mb-0 small" id="messageInvalide"></p>
+                            </div>
+                            <p class="text-muted small">Les liens de réinitialisation expirent au bout d'une heure et ne
+                               servent qu'une seule fois. Vous pouvez en demander un nouveau depuis la page de connexion.</p>
+                            <a href="login.html" class="btn btn-success w-100">Retour à la connexion</a>
+                        </div>
+
+                        <!-- Formulaire, affiché si le lien est valide -->
+                        <form id="formulaireReinitialisation" class="d-none needs-validation" novalidate>
+                            <p class="text-muted" id="messageAccueil"></p>
+
+                            <div class="mb-3">
+                                <label for="motDePasse" class="form-label fw-semibold">Nouveau mot de passe</label>
+                                <input type="password" class="form-control bg-light" id="motDePasse"
+                                       autocomplete="new-password" required
+                                       aria-describedby="aideMotDePasse">
+                                <div id="aideMotDePasse" class="form-text">
+                                    10 caractères minimum, avec au moins une majuscule, une minuscule,
+                                    un chiffre et un caractère spécial.
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="confirmation" class="form-label fw-semibold">Confirmer le mot de passe</label>
+                                <input type="password" class="form-control bg-light" id="confirmation"
+                                       autocomplete="new-password" required>
+                                <div class="invalid-feedback">Les deux mots de passe doivent être identiques.</div>
+                            </div>
+
+                            <div id="zoneErreur" class="alert alert-danger d-none" role="alert"></div>
+
+                            <button type="submit" class="btn btn-success w-100" id="boutonValider">
+                                Enregistrer le nouveau mot de passe
+                            </button>
+                        </form>
+
+                        <!-- Affiché après un changement réussi -->
+                        <div id="etatSucces" class="d-none">
+                            <div class="alert alert-success" role="alert">
+                                Votre mot de passe a bien été modifié.
+                            </div>
+                            <a href="login.html" class="btn btn-success w-100">Se connecter</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-top py-3 mt-auto">
+        <div class="container text-center text-muted small">
+            Vite &amp; Gourmand, service traiteur à Bordeaux.
+            <a href="mentions-legales.html" class="text-decoration-none">Mentions légales</a> ·
+            <a href="cgv.html" class="text-decoration-none">CGV</a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const chargement = document.getElementById('etatChargement');
+        const invalide = document.getElementById('etatInvalide');
+        const succes = document.getElementById('etatSucces');
+        const formulaire = document.getElementById('formulaireReinitialisation');
+        const zoneErreur = document.getElementById('zoneErreur');
+
+        // Le jeton voyage dans l'URL, il n'est jamais stocké côté client.
+        const jeton = new URLSearchParams(window.location.search).get('jeton');
+
+        function afficherInvalide(message) {
+            chargement.classList.add('d-none');
+            document.getElementById('messageInvalide').textContent = message;
+            invalide.classList.remove('d-none');
+        }
+
+        function afficherErreur(message) {
+            zoneErreur.textContent = message;
+            zoneErreur.classList.remove('d-none');
+        }
+
+        // Étape 1 : vérifier la validité du lien avant d'afficher le formulaire.
+        // Cela évite de faire saisir un mot de passe pour rien.
+        (async function verifierLien() {
+            if (!jeton) {
+                afficherInvalide("Aucun jeton n'a été fourni dans l'adresse.");
+                return;
+            }
+
+            try {
+                const reponse = await fetch('/api/auth/reinitialisation/' + encodeURIComponent(jeton));
+                const resultat = await reponse.json();
+
+                if (!reponse.ok || !resultat.valide) {
+                    afficherInvalide(resultat.error || "Lien invalide.");
+                    return;
+                }
+
+                chargement.classList.add('d-none');
+                document.getElementById('messageAccueil').textContent =
+                    'Bonjour ' + resultat.prenom + ', choisissez votre nouveau mot de passe.';
+                formulaire.classList.remove('d-none');
+            } catch (erreur) {
+                afficherInvalide("Impossible de joindre le serveur.");
+            }
+        })();
+
+        // Étape 2 : envoyer le nouveau mot de passe.
+        formulaire.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            zoneErreur.classList.add('d-none');
+
+            const motDePasse = document.getElementById('motDePasse').value;
+            const confirmation = document.getElementById('confirmation');
+
+            // Concordance des deux saisies, vérifiée côté client uniquement
+            // pour le confort : le serveur revérifie tout le reste.
+            if (motDePasse !== confirmation.value) {
+                confirmation.setCustomValidity('different');
+                this.classList.add('was-validated');
+                return;
+            }
+            confirmation.setCustomValidity('');
+
+            if (!this.checkValidity()) {
+                this.classList.add('was-validated');
+                return;
+            }
+
+            const bouton = document.getElementById('boutonValider');
+            bouton.disabled = true;
+            bouton.textContent = 'Enregistrement...';
+
+            try {
+                const reponse = await fetch('/api/auth/reinitialiser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jeton: jeton, mot_de_passe: motDePasse })
+                });
+
+                const resultat = await reponse.json();
+
+                if (!reponse.ok) {
+                    const details = resultat.manquant
+                        ? ' Il manque : ' + resultat.manquant.join(', ') + '.'
+                        : '';
+                    afficherErreur((resultat.error || 'Échec de la réinitialisation.') + details);
+                    return;
+                }
+
+                formulaire.classList.add('d-none');
+                succes.classList.remove('d-none');
+            } catch (erreur) {
+                afficherErreur('Impossible de joindre le serveur. Merci de réessayer.');
+            } finally {
+                bouton.disabled = false;
+                bouton.textContent = 'Enregistrer le nouveau mot de passe';
+            }
+        });
+    </script>
+</body>
+</html>

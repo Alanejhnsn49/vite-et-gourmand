@@ -317,12 +317,49 @@
             }
         });
 
-        // 4. Récupération de Mot de Passe (Simulation conservée pour l'exercice)
-        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+        // 4. Récupération de mot de passe
+        document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('resetEmail').value;
-            alert("Un mail contenant un lien sécurisé de réinitialisation a été envoyé à l'adresse : " + email);
-            bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
+
+            const champEmail = document.getElementById('resetEmail');
+            const bouton = this.querySelector('button[type="submit"]');
+            const libelleInitial = bouton ? bouton.innerHTML : '';
+
+            // Protection contre les doubles soumissions.
+            if (bouton) {
+                bouton.disabled = true;
+                bouton.innerHTML = 'Envoi en cours...';
+            }
+
+            try {
+                const reponse = await fetch('/api/auth/mot-de-passe-oublie', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: champEmail.value.trim() })
+                });
+
+                const resultat = await reponse.json();
+
+                if (!reponse.ok) {
+                    alert(resultat.error || "La demande n'a pas pu être envoyée.");
+                    return;
+                }
+
+                // Le serveur renvoie volontairement le même message que
+                // l'adresse existe ou non, pour ne pas permettre d'énumérer
+                // les comptes de la plateforme. Le front reprend ce message
+                // tel quel plutôt que d'affirmer qu'un email a été envoyé.
+                alert(resultat.message);
+                this.reset();
+                bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
+            } catch (erreur) {
+                alert("Impossible de joindre le serveur. Merci de réessayer dans quelques instants.");
+            } finally {
+                if (bouton) {
+                    bouton.disabled = false;
+                    bouton.innerHTML = libelleInitial;
+                }
+            }
         });
     </script>
 </body>
