@@ -1,15 +1,25 @@
 -- ============================================================================
--- 1. INSERTION DES UTILISATEURS DE TEST (Mots de passe hachés fictifs)
+-- 1. INSERTION DES UTILISATEURS DE DEMONSTRATION
+--
+-- Les mots de passe sont reellement haches avec bcrypt, cout 12, comme en
+-- production. Ces comptes permettent de parcourir les trois roles de
+-- l'application.
+--
+--   jose.admin@viteetgourmand.fr       Admin2026!      role admin
+--   pierre.employe@viteetgourmand.fr   Employe2026!    role employe
+--   jean.dupont@exemple.com            Client2026!     role client
+--
+-- Jeu de donnees reserve a la demonstration : ne jamais charger en production.
 -- ============================================================================
 INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, telephone, adresse_facturation, role) VALUES
 -- Administrateur (José)
-('Gomez', 'José', 'jose.admin@viteetgourmand.fr', '$2b$12$K3v9Z8vB9u8X7y6z5w4v3u2t1s0r9q8p7o6n5m4l3k2j1i0h9g8f7', '05 56 00 11 22', '123 rue de la Gastronomie, 33000 Bordeaux', 'admin'),
+('Gomez', 'José', 'jose.admin@viteetgourmand.fr', '$2b$12$sbVuO4BTkjoKrxdb82gkNOM79QbCjwTvLpxgvFcvXNdEd7zaA3zIO', '05 56 00 11 22', '123 rue de la Gastronomie, 33000 Bordeaux', 'admin'),
 
 -- Employé (Pierre)
-('Durand', 'Pierre', 'pierre.employe@viteetgourmand.fr', '$2b$12$Y7x6w5v4u3t2s1r0q9p8o7n6m5l4k3j2i1h0g9f8e7d6c5b4a3', '06 99 88 77 66', '12 rue des Commis, 33100 Bordeaux', 'employe'),
+('Durand', 'Pierre', 'pierre.employe@viteetgourmand.fr', '$2b$12$B.1CzVRnfuQDZzKWx7xDjeoUJQccwJwNhLtR8aTb.Ggcy6SWxWpv6', '06 99 88 77 66', '12 rue des Commis, 33100 Bordeaux', 'employe'),
 
 -- Client de test (Jean Dupont)
-('Dupont', 'Jean', 'jean.dupont@exemple.com', '$2b$12$Z9y8x7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0f9e8d7c6b5', '06 12 34 56 78', '45 Cours de l''Intendance, 33000 Bordeaux', 'client');
+('Dupont', 'Jean', 'jean.dupont@exemple.com', '$2b$12$ezjtQhIILvdu41fE7LvJ2e/HFN2FP4o3PrHGDeRaALu5WAw.Xd75S', '06 12 34 56 78', '45 Cours de l''Intendance, 33000 Bordeaux', 'client');
 
 -- ============================================================================
 -- 2. INSERTION DES MENUS DE LA CARTE
