@@ -15,6 +15,7 @@ Application web de gestion de menus et de commandes pour un service traiteur, d�
 - [Variables d'environnement](#variables-denvironnement)
 - [API](#api)
 - [Règles de gestion](#règles-de-gestion)
+- [Cycle de vie d'une commande](#cycle-de-vie-dune-commande)
 - [Emails](#emails)
 - [Comptes de démonstration](#comptes-de-démonstration)
 - [Sécurité](#sécurité)
@@ -185,7 +186,7 @@ npm start
 │   └── mongo.js           Connexion MongoDB
 ├── controllers/           Logique métier
 ├── database/
-│   ├── schema.sql         Création des tables (9 tables)
+│   ├── schema.sql         Création des tables (10 tables)
 │   └── seed.sql           Jeu de données de test
 ├── maquette/              Maquettes desktop et mobile (PDF)
 ├── middleware/
@@ -194,6 +195,7 @@ npm start
 ├── routes/                Définition des routes de l'API
 ├── services/
 │   ├── analyticsService.js      Accès aux données MongoDB
+│   ├── commandeStatutService.js Cycle de vie et transitions des commandes
 │   ├── mailService.js           Envoi des emails et gabarits
 │   ├── reinitialisationService.js  Jetons de réinitialisation de mot de passe
 │   └── tarificationService.js   Règles de gestion tarifaires
@@ -240,6 +242,12 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `GET` | `/api/menus/:id` | non | Vue détaillée d'un menu, avec sa composition et les allergènes |
 | `POST` | `/api/orders/simuler` | oui | Détail tarifaire sans enregistrement, pour l'affichage du prix avant validation |
 | `POST` | `/api/orders/create` | oui | Création d'une commande |
+| `GET` | `/api/orders/mes-commandes` | oui | Commandes du client connecté |
+| `GET` | `/api/orders/:id/suivi` | propriétaire ou personnel | Historique complet des statuts, daté |
+| `PATCH` | `/api/orders/:id` | propriétaire | Modification, tant que la commande n'est pas acceptée |
+| `POST` | `/api/orders/:id/annuler` | propriétaire | Annulation, tant que la commande n'est pas acceptée |
+| `GET` | `/api/orders` | rôles `employe` et `admin` | Toutes les commandes, filtrables par statut, client et menu |
+| `PATCH` | `/api/orders/:id/statut` | rôles `employe` et `admin` | Changement de statut |
 | `GET` | `/api/analytics/menus` | rôle `admin` | Commandes et chiffre d'affaires par menu, données du graphique de comparaison |
 | `GET` | `/api/analytics/chiffre-affaires` | rôle `admin` | Chiffre d'affaires global et détail par menu |
 | `GET` | `/api/analytics/evolution` | rôle `admin` | Évolution jour par jour |
@@ -314,6 +322,48 @@ Menu « La Magie de Noël » : minimum 8 convives, 480 €, soit 60 € par pers
 
 ---
 
+## Cycle de vie d'une commande
+
+Les statuts et leurs enchaînements autorisés sont déclarés dans `services/commandeStatutService.js`. Sans machine à états explicite, rien n'empêcherait de faire repasser une commande livrée en préparation, ou de relancer une commande annulée.
+
+```
+attente ──> accepte ──> prep ──> livraison ──> livre ──┬──> terminee
+   │           │          │                            │
+   │           │          │                            └──> retour ──> terminee
+   └───────────┴──────────┴──> annulee
+```
+
+| Statut | Libellé | Transitions possibles |
+|---|---|---|
+| `attente` | En attente de validation | `accepte`, `annulee` |
+| `accepte` | Acceptée | `prep`, `annulee` |
+| `prep` | En préparation | `livraison`, `annulee` |
+| `livraison` | En cours de livraison | `livre` |
+| `livre` | Livrée | `retour`, `terminee` |
+| `retour` | En attente de retour du matériel | `terminee` |
+| `terminee` | Terminée | état final |
+| `annulee` | Annulée | état final |
+
+Une transition non autorisée renvoie un code 409 accompagné de la liste des transitions réellement possibles.
+
+### Règles associées
+
+**Le client garde la main tant que la commande n'est pas acceptée.** Il peut alors la modifier ou l'annuler lui-même. Passé ce stade, l'API refuse en 409 et l'invite à contacter l'entreprise.
+
+**Le menu n'est jamais modifiable.** Il n'est pas lu depuis la requête de modification : il reste celui d'origine, et le prix est recalculé à partir de lui. Envoyer un `menuId` dans la requête n'a aucun effet.
+
+**Une annulation par le personnel exige un motif et un canal de contact** (`gsm` ou `mail`), conformément au cahier des charges qui interdit d'annuler sans avoir joint le client au préalable. Les deux sont conservés dans l'historique.
+
+**Le stock est rendu à l'annulation**, quelle qu'en soit l'origine.
+
+### Traçabilité
+
+La table `suivi_commandes` conserve chaque changement, avec sa date, son auteur, et le motif s'il y en a un. La colonne `commandes.statut` porte l'état courant, la table porte l'historique : conserver les deux évite de recalculer l'état courant à chaque lecture.
+
+La mise à jour du statut et l'écriture dans l'historique sont faites **dans une même transaction**. Sans cela, une panne entre les deux écritures laisserait une commande dont l'état courant n'apparaît nulle part dans son suivi.
+
+---
+
 ## Emails
 
 Tous les envois passent par `services/mailService.js`. Les contrôleurs n'assemblent jamais un email eux-mêmes : ils appellent une fonction nommée d'après l'événement métier. La présentation reste homogène et le changement de fournisseur SMTP se fait dans un seul fichier.
@@ -322,6 +372,10 @@ Tous les envois passent par `services/mailService.js`. Les contrôleurs n'assemb
 |---|---|---|
 | Création d'un compte | le nouvel inscrit | Message de bienvenue et lien vers les menus |
 | Création d'une commande | le client | Récapitulatif complet, détail du prix, remise et livraison isolées |
+| Changement de statut | le client | Nouveau statut et lien vers le suivi |
+| Passage en attente de retour du matériel | le client | Délai de 10 jours ouvrés et pénalité de 600 euros |
+| Commande terminée | le client | Invitation à déposer un avis |
+| Annulation | le client | Motif et canal de contact utilisé |
 | Mot de passe oublié | le titulaire du compte | Lien de réinitialisation valable une heure |
 | Mot de passe modifié | le titulaire du compte | Confirmation, pour qu'il réagisse si la demande ne vient pas de lui |
 | Formulaire de contact | l'entreprise | Demande complète avec coordonnées de l'expéditeur |
@@ -395,6 +449,8 @@ Cette section distingue volontairement ce qui est **effectivement implémenté**
 - Toute nouvelle demande **invalide les jetons précédents** du même compte
 - **Aucune énumération de comptes possible.** La réponse est strictement identique que l'adresse existe ou non. Une réponse différenciée permettrait de découvrir quels comptes existent sur la plateforme
 
+**Contrôle de propriété sur les commandes.** Un client authentifié ne peut lire, modifier ou annuler que ses propres commandes. Sans cette vérification, changer l'identifiant dans l'URL suffirait à consulter le suivi des commandes des autres clients. Les employés et administrateurs y accèdent toutes.
+
 **Échappement des données dans les emails.** Toute valeur issue d'un formulaire est échappée avant insertion dans un gabarit HTML, ce qui empêche l'injection de balisage dans un message lu par un employé.
 
 **Limitation du nombre de tentatives de connexion.** Aucune protection contre le bourrage d'identifiants n'est en place.
@@ -423,7 +479,6 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 
 ### Reste à implémenter
 
-- Cycle de vie complet d'une commande et son suivi client, avec les emails de changement de statut
-- Espace utilisateur, espace employé, espace administrateur
+- Interfaces de l'espace utilisateur et de l'espace employé (le back-end du cycle de vie est fait, dashboard.html reste une maquette)
 - Modération et affichage des avis, avec l'email d'invitation à déposer un avis
 - Conformité RGAA
