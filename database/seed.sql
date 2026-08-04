@@ -74,3 +74,105 @@ INSERT INTO commandes (utilisateur_id, menu_id, date_prestation, heure_prestatio
 INSERT INTO avis (utilisateur_id, commande_id, note, commentaire, statut_moderation) VALUES
 -- Avis validé et visible sur l'accueil
 (3, 3, 5, 'Prestation exceptionnelle pour notre repas de Pâques, les chocolats de Julie ont ravi toute la famille !', 'valide');
+-- ============================================================================
+-- 5. ALLERGENES
+-- ============================================================================
+INSERT INTO allergenes (libelle) VALUES
+    ('Fruits à coque'),
+    ('Gluten'),
+    ('Lactose'),
+    ('Soja'),
+    ('Sulfite'),
+    ('Sésame'),
+    ('Œufs');
+
+-- ============================================================================
+-- 6. PLATS
+--
+-- Chaque plat est declare une seule fois, meme lorsqu il apparait dans
+-- plusieurs menus, conformement au cahier des charges.
+-- ============================================================================
+INSERT INTO plats (nom, type) VALUES
+    ('Planche de charcuteries fines du terroir', 'entree'),
+    ('Terrine de canard maison aux pistaches', 'entree'),
+    ('Manchons de canard confits et pommes de terre sarladaises', 'plat'),
+    ('Cannelés bordelais croustillants', 'dessert'),
+    ('Velouté de potimarron aux éclats de châtaignes', 'entree'),
+    ('Tartare de betterave et chèvre frais aux herbes', 'entree'),
+    ('Risotto crémeux aux champignons sauvages et huile de truffe', 'plat'),
+    ('Poire pochée au vin rouge épicé et glace vanille', 'dessert'),
+    ('Foie gras de canard mi-cuit et son chutney de figues', 'entree'),
+    ('Chapon farci aux marrons, écrasé de céleri-rave', 'plat'),
+    ('Bûche signature au chocolat noir de dégustation', 'dessert'),
+    ('Asperges vertes rôties, sauce mousseline légère', 'entree'),
+    ('Gigot d''agneau de sept heures confit au romarin', 'plat'),
+    ('Entremets nid de Pâques au praliné croustillant', 'dessert'),
+    ('Maki de légumes croquants et avocat, sauce sésame', 'entree'),
+    ('Curry thaï de légumes oubliés au lait de coco et riz basmati parfumé', 'plat'),
+    ('Panna cotta végétale au lait d''amande et coulis de mangue', 'dessert');
+
+-- ============================================================================
+-- 7. ASSOCIATION DES ALLERGENES AUX PLATS
+-- ============================================================================
+INSERT INTO plats_allergenes (plat_id, allergene_id) VALUES
+    ((SELECT id FROM plats WHERE nom = 'Planche de charcuteries fines du terroir'), (SELECT id FROM allergenes WHERE libelle = 'Sulfite')),
+    ((SELECT id FROM plats WHERE nom = 'Terrine de canard maison aux pistaches'), (SELECT id FROM allergenes WHERE libelle = 'Fruits à coque')),
+    ((SELECT id FROM plats WHERE nom = 'Terrine de canard maison aux pistaches'), (SELECT id FROM allergenes WHERE libelle = 'Sulfite')),
+    ((SELECT id FROM plats WHERE nom = 'Cannelés bordelais croustillants'), (SELECT id FROM allergenes WHERE libelle = 'Gluten')),
+    ((SELECT id FROM plats WHERE nom = 'Cannelés bordelais croustillants'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Cannelés bordelais croustillants'), (SELECT id FROM allergenes WHERE libelle = 'Œufs')),
+    ((SELECT id FROM plats WHERE nom = 'Velouté de potimarron aux éclats de châtaignes'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Tartare de betterave et chèvre frais aux herbes'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Risotto crémeux aux champignons sauvages et huile de truffe'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Poire pochée au vin rouge épicé et glace vanille'), (SELECT id FROM allergenes WHERE libelle = 'Sulfite')),
+    ((SELECT id FROM plats WHERE nom = 'Foie gras de canard mi-cuit et son chutney de figues'), (SELECT id FROM allergenes WHERE libelle = 'Sulfite')),
+    ((SELECT id FROM plats WHERE nom = 'Chapon farci aux marrons, écrasé de céleri-rave'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Bûche signature au chocolat noir de dégustation'), (SELECT id FROM allergenes WHERE libelle = 'Gluten')),
+    ((SELECT id FROM plats WHERE nom = 'Bûche signature au chocolat noir de dégustation'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Bûche signature au chocolat noir de dégustation'), (SELECT id FROM allergenes WHERE libelle = 'Soja')),
+    ((SELECT id FROM plats WHERE nom = 'Asperges vertes rôties, sauce mousseline légère'), (SELECT id FROM allergenes WHERE libelle = 'Œufs')),
+    ((SELECT id FROM plats WHERE nom = 'Entremets nid de Pâques au praliné croustillant'), (SELECT id FROM allergenes WHERE libelle = 'Gluten')),
+    ((SELECT id FROM plats WHERE nom = 'Entremets nid de Pâques au praliné croustillant'), (SELECT id FROM allergenes WHERE libelle = 'Lactose')),
+    ((SELECT id FROM plats WHERE nom = 'Entremets nid de Pâques au praliné croustillant'), (SELECT id FROM allergenes WHERE libelle = 'Fruits à coque')),
+    ((SELECT id FROM plats WHERE nom = 'Maki de légumes croquants et avocat, sauce sésame'), (SELECT id FROM allergenes WHERE libelle = 'Sésame')),
+    ((SELECT id FROM plats WHERE nom = 'Panna cotta végétale au lait d''amande et coulis de mangue'), (SELECT id FROM allergenes WHERE libelle = 'Fruits à coque'));
+
+-- ============================================================================
+-- 8. COMPOSITION DES MENUS
+-- ============================================================================
+INSERT INTO menus_plats (menu_id, plat_id) VALUES
+    (1, (SELECT id FROM plats WHERE nom = 'Planche de charcuteries fines du terroir')),
+    (1, (SELECT id FROM plats WHERE nom = 'Terrine de canard maison aux pistaches')),
+    (1, (SELECT id FROM plats WHERE nom = 'Manchons de canard confits et pommes de terre sarladaises')),
+    (1, (SELECT id FROM plats WHERE nom = 'Cannelés bordelais croustillants')),
+    (2, (SELECT id FROM plats WHERE nom = 'Velouté de potimarron aux éclats de châtaignes')),
+    (2, (SELECT id FROM plats WHERE nom = 'Tartare de betterave et chèvre frais aux herbes')),
+    (2, (SELECT id FROM plats WHERE nom = 'Risotto crémeux aux champignons sauvages et huile de truffe')),
+    (2, (SELECT id FROM plats WHERE nom = 'Poire pochée au vin rouge épicé et glace vanille')),
+    (3, (SELECT id FROM plats WHERE nom = 'Foie gras de canard mi-cuit et son chutney de figues')),
+    (3, (SELECT id FROM plats WHERE nom = 'Chapon farci aux marrons, écrasé de céleri-rave')),
+    (3, (SELECT id FROM plats WHERE nom = 'Bûche signature au chocolat noir de dégustation')),
+    (4, (SELECT id FROM plats WHERE nom = 'Asperges vertes rôties, sauce mousseline légère')),
+    (4, (SELECT id FROM plats WHERE nom = 'Gigot d''agneau de sept heures confit au romarin')),
+    (4, (SELECT id FROM plats WHERE nom = 'Entremets nid de Pâques au praliné croustillant')),
+    (5, (SELECT id FROM plats WHERE nom = 'Maki de légumes croquants et avocat, sauce sésame')),
+    (5, (SELECT id FROM plats WHERE nom = 'Curry thaï de légumes oubliés au lait de coco et riz basmati parfumé')),
+    (5, (SELECT id FROM plats WHERE nom = 'Panna cotta végétale au lait d''amande et coulis de mangue'));
+
+-- ============================================================================
+-- 9. PLATS PARTAGES ENTRE PLUSIEURS MENUS
+--
+-- Le cahier des charges precise qu'"une entree ou un plat / dessert peuvent
+-- etre present dans plusieurs menus". Ces associations le demontrent sur le
+-- jeu de demonstration, sans dupliquer la moindre ligne de la table plats.
+--
+-- La coherence des regimes est respectee : aucun plat non vegan n'est ajoute
+-- au menu vegan.
+-- ============================================================================
+INSERT INTO menus_plats (menu_id, plat_id) VALUES
+    -- Les canneles bordelais accompagnent aussi le menu de Paques
+    (4, (SELECT id FROM plats WHERE nom = 'Cannelés bordelais croustillants')),
+    -- Les asperges vertes figurent egalement au menu vegetarien
+    (2, (SELECT id FROM plats WHERE nom = 'Asperges vertes rôties, sauce mousseline légère')),
+    -- Le veloute de potimarron est propose au buffet champetre
+    (1, (SELECT id FROM plats WHERE nom = 'Velouté de potimarron aux éclats de châtaignes'));

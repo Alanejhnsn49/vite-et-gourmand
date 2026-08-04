@@ -185,7 +185,7 @@ npm start
 │   └── mongo.js           Connexion MongoDB
 ├── controllers/           Logique métier
 ├── database/
-│   ├── schema.sql         Création des tables (5 tables)
+│   ├── schema.sql         Création des tables (9 tables)
 │   └── seed.sql           Jeu de données de test
 ├── maquette/              Maquettes desktop et mobile (PDF)
 ├── middleware/
@@ -236,7 +236,8 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `POST` | `/api/auth/mot-de-passe-oublie` | non | Demande d'un lien de réinitialisation |
 | `GET` | `/api/auth/reinitialisation/:jeton` | non | Vérifie la validité d'un lien avant d'afficher le formulaire |
 | `POST` | `/api/auth/reinitialiser` | non | Enregistre le nouveau mot de passe |
-| `GET` | `/api/menus` | non | Liste des menus disponibles |
+| `GET` | `/api/menus` | non | Vue globale des menus, filtrable |
+| `GET` | `/api/menus/:id` | non | Vue détaillée d'un menu, avec sa composition et les allergènes |
 | `POST` | `/api/orders/simuler` | oui | Détail tarifaire sans enregistrement, pour l'affichage du prix avant validation |
 | `POST` | `/api/orders/create` | oui | Création d'une commande |
 | `GET` | `/api/analytics/menus` | rôle `admin` | Commandes et chiffre d'affaires par menu, données du graphique de comparaison |
@@ -246,6 +247,34 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `GET` | `/api/status` | non | Vérification de disponibilité |
 
 Les trois routes analytiques acceptent les filtres `menuId`, `dateDebut` et `dateFin`, combinables.
+
+### Filtres de la vue globale des menus
+
+`GET /api/menus` accepte cinq filtres, tous optionnels et combinables :
+
+| Paramètre | Effet |
+|---|---|
+| `theme` | `classique`, `noel`, `paques` ou `evenement` |
+| `regime` | `classique`, `vegetarien`, `vegan` ou `sans-gluten` |
+| `minPersonnes` | Menus dont le minimum de convives atteint au moins cette valeur |
+| `prixMin` | Borne basse de la fourchette de prix |
+| `prixMax` | Borne haute, ou plafond de prix utilisé seul |
+
+**Le filtrage est fait par PostgreSQL, pas en JavaScript après coup.** La base n'envoie que les lignes utiles, ce qui reste efficace quel que soit le nombre de menus. Le front interroge l'API à chaque changement de filtre et met à jour la liste sans recharger la page.
+
+Les valeurs de `theme` et `regime` sont comparées à une liste blanche alignée sur les contraintes `CHECK` du schéma. Une valeur hors de cette liste neutralise le filtre au lieu d'être transmise à la requête, et la réponse ne reflète que les filtres réellement appliqués. Les bornes numériques passent par `parseInt` et `parseFloat`. Toutes les valeurs retenues sont liées en paramètres, jamais concaténées.
+
+### Modèle de données des menus
+
+Le cahier des charges précise qu'« une entrée ou un plat / dessert peuvent être présents dans plusieurs menus ». Cette phrase impose une relation plusieurs-à-plusieurs : un plat est donc une entité autonome, jamais dupliquée d'un menu à l'autre. Même raisonnement entre les plats et les allergènes.
+
+```
+menus ──< menus_plats >── plats ──< plats_allergenes >── allergenes
+```
+
+Le jeu de démonstration comporte 5 menus, 17 plats et 7 allergènes, dont 3 plats effectivement partagés entre deux menus.
+
+La vue détaillée récupère les plats et leurs allergènes **en une seule requête**, avec une agrégation `ARRAY_AGG ... FILTER` côté PostgreSQL. Une version naïve déclencherait un appel par plat, soit 18 allers-retours au lieu d'un : c'est le problème classique dit « N+1 ».
 
 ### Répartition des données entre les deux bases
 
@@ -394,8 +423,6 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 
 ### Reste à implémenter
 
-- Filtres dynamiques sur la vue globale des menus, sans rechargement de page
-- Vue détaillée d'un menu
 - Cycle de vie complet d'une commande et son suivi client, avec les emails de changement de statut
 - Espace utilisateur, espace employé, espace administrateur
 - Modération et affichage des avis, avec l'email d'invitation à déposer un avis

@@ -128,3 +128,65 @@ CREATE INDEX idx_reinit_jeton ON reinitialisations_mot_de_passe (jeton_hache);
 
 -- Invalidation des jetons precedents d'un utilisateur lors d'une nouvelle demande.
 CREATE INDEX idx_reinit_utilisateur ON reinitialisations_mot_de_passe (utilisateur_id);
+
+-- ============================================================================
+-- PLATS, ALLERGENES ET COMPOSITION DES MENUS
+--
+-- Le cahier des charges precise qu'un menu comporte "une liste de plat
+-- possible (entree, plat ainsi que dessert)", que "chaque plat peut posseder
+-- une liste d'allergenes" et qu'"une entree ou un plat / dessert peuvent etre
+-- present dans plusieurs menus".
+--
+-- Cette derniere phrase impose une relation plusieurs-a-plusieurs entre les
+-- menus et les plats : un plat est donc une entite autonome, jamais dupliquee
+-- d'un menu a l'autre. Meme raisonnement entre les plats et les allergenes.
+-- ============================================================================
+
+CREATE TABLE plats (
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(200) NOT NULL UNIQUE,
+    type VARCHAR(20) NOT NULL,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT chk_type_plat CHECK (type IN ('entree', 'plat', 'dessert'))
+);
+
+CREATE TABLE allergenes (
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(80) NOT NULL UNIQUE
+);
+
+-- Table de liaison plats / allergenes.
+-- La cle primaire composite empeche d'associer deux fois le meme allergene
+-- au meme plat.
+CREATE TABLE plats_allergenes (
+    plat_id INT NOT NULL,
+    allergene_id INT NOT NULL,
+
+    PRIMARY KEY (plat_id, allergene_id),
+    CONSTRAINT fk_pa_plat FOREIGN KEY (plat_id)
+        REFERENCES plats(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pa_allergene FOREIGN KEY (allergene_id)
+        REFERENCES allergenes(id) ON DELETE CASCADE
+);
+
+-- Table de liaison menus / plats.
+CREATE TABLE menus_plats (
+    menu_id INT NOT NULL,
+    plat_id INT NOT NULL,
+
+    PRIMARY KEY (menu_id, plat_id),
+    CONSTRAINT fk_mp_menu FOREIGN KEY (menu_id)
+        REFERENCES menus(id) ON DELETE CASCADE,
+    CONSTRAINT fk_mp_plat FOREIGN KEY (plat_id)
+        REFERENCES plats(id) ON DELETE CASCADE
+);
+
+-- Index sur les cles etrangeres interrogees lors de l'affichage d'un menu.
+CREATE INDEX idx_menus_plats_plat ON menus_plats (plat_id);
+CREATE INDEX idx_plats_allergenes_allergene ON plats_allergenes (allergene_id);
+
+-- Index sur les colonnes servant aux filtres de la vue globale des menus.
+CREATE INDEX idx_menus_theme ON menus (theme);
+CREATE INDEX idx_menus_regime ON menus (regime);
+CREATE INDEX idx_menus_prix ON menus (prix_min);
