@@ -485,6 +485,66 @@ Cette section distingue volontairement ce qui est **effectivement implémenté**
 
 ---
 
+## Déploiement
+
+L'application est conteneurisée : le même `Dockerfile` sert en local et en production. Ce qui change en ligne, ce sont les services externes.
+
+### Ce que l'hébergement doit fournir
+
+| Besoin | En local | En production |
+|---|---|---|
+| Application | conteneur `app` | service web construit depuis le `Dockerfile` |
+| Base relationnelle | conteneur `postgres:16-alpine` | PostgreSQL managé |
+| Base non relationnelle | conteneur `mongo:7` | MongoDB Atlas, offre gratuite M0 |
+| SMTP | conteneur Mailpit | fournisseur d'envoi réel |
+
+### Trois adaptations nécessaires, déjà en place
+
+**1. Les sessions sont stockées en base, pas en mémoire.** Le stockage par défaut d'`express-session` perd toutes les sessions au moindre redémarrage du processus. Un hébergeur redéployant ou redémarrant une instance déconnecterait donc tous les utilisateurs, et deux instances ne partageraient pas leurs sessions. `connect-pg-simple` les persiste dans PostgreSQL, dans une table `sessions` créée automatiquement.
+
+**2. Cookies sécurisés et proxy de confiance.** Quand `NODE_ENV=production`, le cookie de session passe en `secure` et Express est configuré avec `trust proxy`. Sans ce second réglage, Express voit la connexion HTTP interne derrière le reverse proxy de l'hébergeur, considère que la requête n'est pas chiffrée, et refuse d'émettre le cookie : l'authentification échouerait silencieusement une fois en ligne.
+
+**3. Initialisation de la base.** En local, `docker-compose` monte `schema.sql` et `seed.sql` dans `/docker-entrypoint-initdb.d` et PostgreSQL les exécute seul. Un PostgreSQL managé ne dispose pas de ce mécanisme : la base est livrée vide. Le script `scripts/init-db.js` joue les mêmes fichiers, dans le même ordre :
+
+```bash
+npm run db:init
+```
+
+```bash
+npm run db:seed
+```
+
+Le script refuse de s'exécuter si la base contient déjà des commandes, `schema.sql` commençant par des `DROP TABLE`. L'option `--force` permet de passer outre en connaissance de cause.
+
+### Sonde de santé
+
+```
+GET /api/health
+```
+
+Contrairement à `/api/status`, qui prouve seulement que le processus répond, cette route vérifie que les deux bases sont réellement joignables. Elle renvoie 503 si PostgreSQL est inaccessible, ce qui permet à l'hébergeur de redémarrer l'instance plutôt que de laisser tourner une application incapable de servir quoi que ce soit.
+
+MongoDB ne porte que les données analytiques : son indisponibilité dégrade l'espace administrateur mais n'empêche pas de vendre, elle ne déclenche donc pas de 503.
+
+### Variables d'environnement à renseigner en production
+
+| Variable | Valeur |
+|---|---|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | fournie par l'hébergeur |
+| `SESSION_SECRET` | chaîne aléatoire longue, jamais celle du dépôt |
+| `APP_URL` | URL publique, utilisée dans les liens des emails |
+| `MONGO_URL` | chaîne de connexion MongoDB Atlas |
+| `MAIL_*` | identifiants du fournisseur SMTP |
+
+Sans les variables `MAIL_*`, l'application démarre et fonctionne, mais n'envoie aucun email : les échecs d'envoi sont journalisés et n'interrompent jamais un parcours métier.
+
+### Blueprint Render
+
+Le fichier `render.yaml` décrit le service web et la base PostgreSQL. Render le lit et crée l'infrastructure automatiquement. `SESSION_SECRET` y est marqué `generateValue`, il est donc produit à la création et n'apparaît jamais dans le dépôt.
+
+---
+
 ## Workflow git
 
 Le dépôt suit le flux imposé par l'énoncé.
