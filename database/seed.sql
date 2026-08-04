@@ -176,3 +176,15 @@ INSERT INTO menus_plats (menu_id, plat_id) VALUES
     (2, (SELECT id FROM plats WHERE nom = 'Asperges vertes rôties, sauce mousseline légère')),
     -- Le veloute de potimarron est propose au buffet champetre
     (1, (SELECT id FROM plats WHERE nom = 'Velouté de potimarron aux éclats de châtaignes'));
+
+-- ============================================================================
+-- 10. HORAIRES D'OUVERTURE (1 = lundi ... 7 = dimanche)
+-- ============================================================================
+INSERT INTO horaires (jour_semaine, ferme, heure_ouverture, heure_fermeture) VALUES
+    (1, FALSE, '09:00', '18:00'),
+    (2, FALSE, '09:00', '18:00'),
+    (3, FALSE, '09:00', '18:00'),
+    (4, FALSE, '09:00', '18:00'),
+    (5, FALSE, '09:00', '19:00'),
+    (6, FALSE, '10:00', '17:00'),
+    (7, TRUE,  NULL,    NULL);
