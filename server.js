@@ -3,6 +3,7 @@ const session = require('express-session');
 require('dotenv').config();
 
 const mongo = require('./config/mongo');
+const mail = require('./services/mailService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/orders');
 const menuRoutes = require('./routes/menus');
 const analyticsRoutes = require('./routes/analytics');
+const contactRoutes = require('./routes/contact');
 
 // Middleware pour analyser les requêtes JSON et de formulaires
 app.use(express.json());
@@ -38,6 +40,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/menus', menuRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Route de test d'API
 app.get('/api/status', (req, res) => {
@@ -47,7 +50,7 @@ app.get('/api/status', (req, res) => {
 // Démarrage du serveur
 // La connexion MongoDB est établie avant l'écoute HTTP, afin que les
 // index analytiques soient prêts dès la première requête.
-mongo.connect().then(() => {
+Promise.all([mongo.connect(), mail.verifierConnexion()]).then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
     });

@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const analytics = require('../services/analyticsService');
 const tarification = require('../services/tarificationService');
+const mail = require('../services/mailService');
 
 /**
  * Recupere un menu et verifie qu'il est commandable.
@@ -122,6 +123,18 @@ exports.createOrder = async (req, res) => {
         // Evenement analytique ecrit apres l'enregistrement relationnel :
         // une indisponibilite de MongoDB ne doit jamais faire echouer une vente.
         await analytics.enregistrerCommande(newOrder.rows[0], menu);
+
+        // Email de confirmation avec le détail tarifaire.
+        // Comme pour l'analytique, un échec d'envoi ne remet jamais la
+        // commande en cause : elle est déjà enregistrée.
+        const clientQuery = await db.query(
+            'SELECT prenom, nom, email FROM utilisateurs WHERE id = $1', [userId]
+        );
+        if (clientQuery.rows.length > 0) {
+            await mail.envoyerConfirmationCommande(
+                clientQuery.rows[0], newOrder.rows[0], menu, detail
+            );
+        }
 
         res.status(201).json({
             message: "Commande enregistrée avec succès !",
