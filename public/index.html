@@ -11,15 +11,20 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
     <!-- Mon CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
+    <!-- Lien d'evitement : premier element focusable, il permet a une
+         personne naviguant au clavier de sauter la navigation repetee sur
+         chaque page pour atteindre directement le contenu. -->
+    <a class="lien-evitement" href="#contenu">Aller au contenu principal</a>
+
 
     <!-- Menu de navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold text-success" href="index.html">Vite & Gourmand</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Ouvrir le menu de navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -32,6 +37,8 @@
             </div>
         </div>
     </nav>
+
+    <main id="contenu" class="flex-grow-1">
 
     <!-- Bandeau d'accueil (Hero Section) -->
     <section class="hero-section text-white text-center d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1600&q=80') no-repeat center center; background-size: cover; min-height: 50vh;">
@@ -130,6 +137,8 @@
             <a href="menus.html" class="btn btn-light btn-lg px-4 py-3 fw-semibold text-success shadow">Voir tous les menus</a>
         </div>
     </section>
+
+    </main>
 
     <!-- Pied de page -->
     <footer class="bg-dark text-white pt-5 pb-3 mt-auto">

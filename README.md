@@ -75,6 +75,16 @@ docker compose up -d --build
 
 L'application est disponible sur http://localhost:3000
 
+### Étape 4 : alimenter les données analytiques
+
+```bash
+docker compose exec app npm run db:seed -- --force
+```
+
+`seed.sql` n'alimente que PostgreSQL. Cette commande y rejoue le jeu de démonstration **et** reporte les commandes correspondantes dans MongoDB, sans quoi le graphique de l'espace administrateur resterait vide alors que des commandes existent bel et bien.
+
+En fonctionnement normal, ces événements sont écrits au fil de l'eau à chaque commande passée.
+
 La boîte de réception de développement, qui capture tous les emails envoyés par l'application, est consultable sur http://localhost:8025
 
 ### Ce que fait la commande
@@ -565,6 +575,24 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 | CPT 2 : composants d'accès aux données SQL et NoSQL | Traité, MongoDB branché avec écriture d'événements, agrégations filtrables et index |
 | CPT 3 : composants métier côté serveur | En cours |
 
+### Accessibilité
+
+Les points suivants sont en place sur les dix pages :
+
+| Critère | État |
+|---|---|
+| Langue de la page déclarée | 10/10 |
+| Lien d'évitement vers le contenu principal | 10/10 |
+| Repère `main` identifié | 10/10 |
+| Titre de page unique et explicite | 10/10 |
+| Alternative textuelle sur les images | 10/10 |
+| Identifiants uniques dans le document | 10/10 |
+
+S'y ajoutent : `aria-label` sur les contrôles sans texte visible, `visually-hidden` sur les indicateurs de chargement et les notations en étoiles, `scope` sur les en-têtes de tableaux, `aria-live` sur les zones de message, `aria-describedby` sur les champs à contrainte, `aria-current` sur la navigation, `title` sur la carte intégrée, un contour de focus franc et systématique, un contraste relevé sur le texte secondaire des fonds sombres, et le respect de `prefers-reduced-motion`.
+
+**Le lien d'évitement n'est pas masqué avec `display: none`**, ce qui le retirerait de l'ordre de tabulation et le rendrait inatteignable. Il est positionné hors de l'écran et revient à la première tabulation.
+
 ### Reste à implémenter
 
-- Conformité RGAA
+- Audit RGAA complet : mesure des contrastes page par page, parcours complet au clavier, vérification de l'ordre de tabulation
+- Mise en ligne de l'application

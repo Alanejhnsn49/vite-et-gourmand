@@ -1,6 +1,23 @@
 -- ============================================================================
--- 1. NETTOYAGE DE LA BASE (Pour réinitialisation en local)
+-- 1. NETTOYAGE DE LA BASE (Pour réinitialisation)
+--
+-- L'ordre suit les dépendances : les tables de liaison et les tables filles
+-- d'abord, les tables mères ensuite. CASCADE rend cet ordre théorique, mais
+-- l'expliciter documente le modèle.
+--
+-- Toute nouvelle table doit être ajoutée ici, faute de quoi le script ne peut
+-- plus être rejoué sur une base existante.
+--
+-- La table "sessions" n'y figure pas volontairement : elle est créée et gérée
+-- par connect-pg-simple, indépendamment du modèle métier.
 -- ============================================================================
+DROP TABLE IF EXISTS suivi_commandes CASCADE;
+DROP TABLE IF EXISTS reinitialisations_mot_de_passe CASCADE;
+DROP TABLE IF EXISTS plats_allergenes CASCADE;
+DROP TABLE IF EXISTS menus_plats CASCADE;
+DROP TABLE IF EXISTS allergenes CASCADE;
+DROP TABLE IF EXISTS plats CASCADE;
+DROP TABLE IF EXISTS horaires CASCADE;
 DROP TABLE IF EXISTS avis CASCADE;
 DROP TABLE IF EXISTS commandes CASCADE;
 DROP TABLE IF EXISTS menus CASCADE;
