@@ -156,6 +156,35 @@ async function envoyerConfirmationCommande(utilisateur, commande, menu, detail) 
 }
 
 /**
+ * Notification de creation d'un compte employe par l'administrateur.
+ *
+ * Cahier des charges : "l'employe en question va recevoir un mail lui
+ * notifiant qu'un compte pour lui a ete cree, cependant, le mot de passe
+ * n'est pas communique dans le mail. Il devra se rapprocher de
+ * l'administrateur afin de l'obtenir."
+ *
+ * Le mot de passe n'est donc jamais transmis ici. C'est aussi une bonne
+ * pratique en soi : un email transite en clair et reste stocke durablement
+ * chez le destinataire.
+ */
+async function envoyerCreationCompteEmploye(employe) {
+    return envoyer({
+        to: employe.email,
+        subject: 'Votre compte Vite & Gourmand a été créé',
+        html: gabarit(`Bonjour ${echapper(employe.prenom)},`, `
+            <p>Un compte employe vient d'etre cree pour vous sur la plateforme Vite &amp; Gourmand.</p>
+            <p>Votre identifiant de connexion est votre adresse email : <strong>${echapper(employe.email)}</strong></p>
+            <div style="border-left:4px solid #7c2d12;background:#fef7f2;padding:16px;margin:20px 0;">
+              <p style="margin:0;">Pour des raisons de securite, <strong>votre mot de passe ne figure pas dans cet email</strong>. Rapprochez-vous de votre administrateur pour l'obtenir.</p>
+            </div>
+            <p style="margin:24px 0;">
+              <a href="${APP_URL}/login.html" style="background:#7c2d12;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Se connecter</a>
+            </p>
+        `),
+    });
+}
+
+/**
  * Notification de changement de statut d'une commande.
  * Le client suit l'avancement de sa prestation sans avoir a se connecter.
  */
@@ -323,6 +352,7 @@ async function verifierConnexion() {
 module.exports = {
     envoyerBienvenue,
     envoyerConfirmationCommande,
+    envoyerCreationCompteEmploye,
     envoyerChangementStatut,
     envoyerRetourMateriel,
     envoyerInvitationAvis,

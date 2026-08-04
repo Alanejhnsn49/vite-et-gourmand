@@ -86,9 +86,23 @@ exports.login = async (req, res) => {
         const user = userQuery.rows[0];
 
         // Comparer le mot de passe saisi avec le hash stocké en base de données
+        //
+        // La comparaison est faite AVANT le contrôle d'activation, et de
+        // façon délibérée : révéler qu'un compte est désactivé sans exiger
+        // le bon mot de passe permettrait de découvrir quelles adresses
+        // correspondent à d'anciens employés.
         const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
         if (!match) {
             return res.status(401).json({ error: "Identifiants incorrects." });
+        }
+
+        // Un compte rendu inutilisable par l'administrateur ne peut plus
+        // ouvrir de session, mais il n'est jamais supprimé : son historique
+        // de commandes reste intact.
+        if (user.actif === false) {
+            return res.status(403).json({
+                error: "Ce compte a été désactivé. Rapprochez-vous de votre administrateur.",
+            });
         }
 
         // Initialiser la session utilisateur (Stockage sécurisé côté serveur)

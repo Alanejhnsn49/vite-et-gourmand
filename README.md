@@ -252,6 +252,14 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `GET` | `/api/analytics/chiffre-affaires` | rôle `admin` | Chiffre d'affaires global et détail par menu |
 | `GET` | `/api/analytics/evolution` | rôle `admin` | Évolution jour par jour |
 | `POST` | `/api/contact` | non | Formulaire de contact, transmis par email à l'entreprise |
+| `GET` | `/api/avis` | non | Avis validés, pour la page d'accueil |
+| `POST` | `/api/avis` | propriétaire | Dépôt d'un avis sur une commande terminée |
+| `GET` | `/api/avis/moderation` | rôles `employe` et `admin` | File de modération |
+| `PATCH` | `/api/avis/:id/moderation` | rôles `employe` et `admin` | Validation ou refus d'un avis |
+| `PATCH` | `/api/users/moi` | oui | Modification de ses informations personnelles |
+| `GET` | `/api/users` | rôle `admin` | Liste des comptes |
+| `POST` | `/api/users/employes` | rôle `admin` | Création d'un compte employé |
+| `PATCH` | `/api/users/:id/actif` | rôle `admin` | Activation ou désactivation d'un compte |
 | `GET` | `/api/status` | non | Vérification de disponibilité |
 
 Les trois routes analytiques acceptent les filtres `menuId`, `dateDebut` et `dateFin`, combinables.
@@ -449,6 +457,16 @@ Cette section distingue volontairement ce qui est **effectivement implémenté**
 - Toute nouvelle demande **invalide les jetons précédents** du même compte
 - **Aucune énumération de comptes possible.** La réponse est strictement identique que l'adresse existe ou non. Une réponse différenciée permettrait de découvrir quels comptes existent sur la plateforme
 
+**Aucune élévation de privilège possible.** Trois protections indépendantes :
+
+- La modification de profil n'accepte que le nom, le prénom, le téléphone, l'adresse et l'email. Envoyer `role: "admin"` dans la requête n'a aucun effet, le champ n'est jamais lu
+- La création de compte employé écrit le rôle **en dur** dans la requête SQL. Le cahier des charges impose qu'« il ne doit pas être possible de créer un compte Administrateur depuis l'application » : envoyer `role: "admin"` produit un compte `employe`
+- Le rôle utilisé pour les contrôles d'accès est lu dans la session serveur, jamais dans une valeur transmise par le client
+
+**Désactivation de compte plutôt que suppression.** Un compte rendu inutilisable ne peut plus ouvrir de session, mais il n'est jamais effacé : son historique de commandes reste intact et les clés étrangères ne cassent pas. Le contrôle d'activation intervient **après** la vérification du mot de passe, pour ne pas révéler quelles adresses correspondent à d'anciens employés. Un administrateur ne peut pas se désactiver lui-même.
+
+**Modération des avis avant publication.** Aucun avis n'apparaît sur la page d'accueil sans validation par un employé. Seul le prénom du client est exposé publiquement : publier son nom complet serait une diffusion de donnée personnelle non nécessaire au regard du RGPD.
+
 **Contrôle de propriété sur les commandes.** Un client authentifié ne peut lire, modifier ou annuler que ses propres commandes. Sans cette vérification, changer l'identifiant dans l'URL suffirait à consulter le suivi des commandes des autres clients. Les employés et administrateurs y accèdent toutes.
 
 **Échappement des données dans les emails.** Toute valeur issue d'un formulaire est échappée avant insertion dans un gabarit HTML, ce qui empêche l'injection de balisage dans un message lu par un employé.
@@ -479,6 +497,8 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 
 ### Reste à implémenter
 
-- Interfaces de l'espace utilisateur et de l'espace employé (le back-end du cycle de vie est fait, dashboard.html reste une maquette)
-- Modération et affichage des avis, avec l'email d'invitation à déposer un avis
+- Interfaces des trois espaces : tout le back-end est écrit et testé, les pages restent des maquettes
+- Câblage des interfaces `dashboard.html` et `admin-menus.html` sur les API désormais disponibles
+- Gestion des menus et des plats depuis l'espace employé (création, modification, suppression)
+- Affichage des avis validés sur la page d'accueil
 - Conformité RGAA

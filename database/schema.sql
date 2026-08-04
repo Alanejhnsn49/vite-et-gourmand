@@ -18,8 +18,16 @@ CREATE TABLE utilisateurs (
     telephone VARCHAR(20) NOT NULL,
     adresse_facturation TEXT NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'client',
+
+    -- Un compte n'est jamais supprimé, il est rendu inutilisable.
+    -- Cahier des charges : "il doit être possible également de rendre
+    -- inutilisable un compte employé en cas de départ de l'entreprise".
+    -- Une suppression casserait les clés étrangères des commandes passées
+    -- et ferait disparaître l'historique commercial.
+    actif BOOLEAN NOT NULL DEFAULT TRUE,
+
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     -- Sécurité : Limitation stricte des rôles applicatifs
     CONSTRAINT chk_role CHECK (role IN ('client', 'employe', 'admin'))
 );
