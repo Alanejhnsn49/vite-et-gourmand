@@ -110,33 +110,12 @@
     <!-- Avis clients -->
     <section class="py-5 bg-white">
         <div class="container">
-            <h2 class="text-center fw-bold text-success mb-5">Ce que disent nos clients</h2>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card border-0 bg-light h-100">
-                        <div class="card-body p-4">
-                            <p class="text-warning mb-2">★★★★★</p>
-                            <p class="fst-italic text-secondary">"Un service impeccable et des plats délicieux pour notre mariage. Merci Julie et José !"</p>
-                            <p class="fw-bold text-dark mb-0">— Marie D.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-0 bg-light h-100">
-                        <div class="card-body p-4">
-                            <p class="text-warning mb-2">★★★★★</p>
-                            <p class="fst-italic text-secondary">"Menu de Noël exceptionnel, tout était parfaitement organisé."</p>
-                            <p class="fw-bold text-dark mb-0">— Pierre L.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-0 bg-light h-100">
-                        <div class="card-body p-4">
-                            <p class="text-warning mb-2">★★★★☆</p>
-                            <p class="fst-italic text-secondary">"Très bonne prestation, équipe professionnelle et à l'écoute."</p>
-                            <p class="fw-bold text-dark mb-0">— Sophie M.</p>
-                        </div>
+            <h2 class="text-center fw-bold text-success mb-2">Ce que disent nos clients</h2>
+            <p class="text-center text-muted mb-5" id="avisResume"></p>
+            <div class="row g-4" id="avisContainer">
+                <div class="col-12 text-center py-4">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Chargement des avis clients</span>
                     </div>
                 </div>
             </div>
@@ -166,13 +145,9 @@
 
                 <div class="col-md-3">
                     <h5 class="fw-bold mb-3">Horaires</h5>
-                    <p class="text-white-50 small">
-                        Lundi - Vendredi : 9h - 18h
-
-                        Samedi : 9h - 12h
-
-                        Dimanche : Fermé
-                    </p>
+                    <ul class="list-unstyled text-white-50 small mb-0" id="horairesFooter">
+                        <li>Chargement...</li>
+                    </ul>
                 </div>
 
                 <div class="col-md-3">
@@ -208,5 +183,97 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ====================================================================
+        // PAGE D'ACCUEIL
+        //
+        // Les avis affichés ici sont ceux que l'API renvoie, c'est à dire
+        // uniquement les avis validés par un employé. Ils étaient auparavant
+        // écrits en dur dans le HTML.
+        //
+        // Les horaires viennent également de la base : ils sont modifiables
+        // par un employé depuis son espace.
+        // ====================================================================
+
+        function echapper(v) {
+            if (v === null || v === undefined) return '';
+            return String(v)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        /**
+         * Représentation textuelle et accessible d'une note.
+         * Les étoiles seules ne sont pas lisibles par un lecteur d'écran :
+         * la valeur chiffrée est donc annoncée en parallèle.
+         */
+        function etoiles(note) {
+            return '<span aria-hidden="true">' + '★'.repeat(note) + '☆'.repeat(5 - note) + '</span>'
+                 + '<span class="visually-hidden">Note de ' + note + ' sur 5</span>';
+        }
+
+        async function chargerAvis() {
+            const zone = document.getElementById('avisContainer');
+            const resume = document.getElementById('avisResume');
+
+            try {
+                const reponse = await fetch('/api/avis');
+                const donnees = await reponse.json();
+
+                if (!reponse.ok || donnees.total === 0) {
+                    zone.innerHTML = '<div class="col-12 text-center">'
+                        + '<p class="text-muted mb-0">Aucun avis publié pour le moment. '
+                        + 'Soyez le premier à nous laisser le vôtre après votre prestation.</p></div>';
+                    resume.textContent = '';
+                    return;
+                }
+
+                resume.textContent = donnees.note_moyenne + ' sur 5 en moyenne, sur '
+                                   + donnees.total + ' avis vérifié' + (donnees.total > 1 ? 's' : '');
+
+                // Trois avis suffisent sur la page d'accueil.
+                zone.innerHTML = donnees.avis.slice(0, 3).map(a =>
+                    '<div class="col-md-4">'
+                  + '<article class="card border-0 bg-light h-100">'
+                  + '<div class="card-body p-4">'
+                  + '<p class="text-warning mb-2">' + etoiles(a.note) + '</p>'
+                  + '<p class="fst-italic text-secondary">« ' + echapper(a.commentaire) + ' »</p>'
+                  + '<p class="fw-bold text-dark mb-0">— ' + echapper(a.prenom) + '</p>'
+                  + '<p class="text-muted small mb-0">' + echapper(a.menu_titre) + '</p>'
+                  + '</div></article></div>'
+                ).join('');
+            } catch (erreur) {
+                zone.innerHTML = '<div class="col-12 text-center">'
+                    + '<p class="text-muted mb-0">Les avis ne sont pas disponibles pour le moment.</p></div>';
+            }
+        }
+
+        async function chargerHoraires() {
+            const liste = document.getElementById('horairesFooter');
+
+            try {
+                const reponse = await fetch('/api/catalogue/horaires');
+                const donnees = await reponse.json();
+
+                if (!reponse.ok) throw new Error();
+
+                liste.innerHTML = donnees.horaires.map(h => {
+                    const jour = h.jour.charAt(0).toUpperCase() + h.jour.slice(1);
+                    const plage = h.ferme
+                        ? 'Fermé'
+                        : h.heure_ouverture.replace(':', 'h') + ' - ' + h.heure_fermeture.replace(':', 'h');
+                    return '<li>' + jour + ' : ' + plage + '</li>';
+                }).join('');
+            } catch (erreur) {
+                liste.innerHTML = '<li>Horaires momentanément indisponibles</li>';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            chargerAvis();
+            chargerHoraires();
+        });
+    </script>
 </body>
 </html>

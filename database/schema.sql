@@ -238,3 +238,35 @@ CREATE INDEX idx_suivi_commande ON suivi_commandes (commande_id, date_changement
 -- Index sur les colonnes de filtrage de l'espace employe.
 CREATE INDEX idx_commandes_statut ON commandes (statut);
 CREATE INDEX idx_commandes_utilisateur ON commandes (utilisateur_id);
+
+-- ============================================================================
+-- HORAIRES D'OUVERTURE
+--
+-- Cahier des charges : "les horaires doivent etre visible sur le pied de
+-- page, du lundi au dimanche" et l'employe "peut modifier / supprimer les
+-- menus, plats, et les horaires".
+--
+-- Les horaires etaient jusqu'ici ecrits en dur dans le HTML, donc non
+-- modifiables depuis l'application.
+--
+-- jour_semaine suit la convention ISO : 1 = lundi, 7 = dimanche.
+-- ============================================================================
+CREATE TABLE horaires (
+    id SERIAL PRIMARY KEY,
+    jour_semaine INT NOT NULL UNIQUE,
+    ferme BOOLEAN NOT NULL DEFAULT FALSE,
+    heure_ouverture TIME,
+    heure_fermeture TIME,
+
+    CONSTRAINT chk_jour CHECK (jour_semaine BETWEEN 1 AND 7),
+
+    -- Un jour ouvert doit porter ses deux horaires, un jour ferme n'en porte
+    -- aucun. Sans cette contrainte, la base accepterait un jour ouvert sans
+    -- heure d'ouverture.
+    CONSTRAINT chk_coherence_horaires CHECK (
+        (ferme = TRUE AND heure_ouverture IS NULL AND heure_fermeture IS NULL)
+        OR
+        (ferme = FALSE AND heure_ouverture IS NOT NULL AND heure_fermeture IS NOT NULL
+         AND heure_fermeture > heure_ouverture)
+    )
+);
