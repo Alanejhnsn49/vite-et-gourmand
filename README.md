@@ -217,6 +217,7 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `POST` | `/api/auth/logout` | non | Déconnexion |
 | `GET` | `/api/auth/me` | oui | Profil de l'utilisateur connecté |
 | `GET` | `/api/menus` | non | Liste des menus disponibles |
+| `POST` | `/api/orders/simuler` | oui | Détail tarifaire sans enregistrement, pour l'affichage du prix avant validation |
 | `POST` | `/api/orders/create` | oui | Création d'une commande |
 | `GET` | `/api/analytics/menus` | rôle `admin` | Commandes et chiffre d'affaires par menu, données du graphique de comparaison |
 | `GET` | `/api/analytics/chiffre-affaires` | rôle `admin` | Chiffre d'affaires global et détail par menu |
@@ -234,6 +235,46 @@ Les trois routes analytiques acceptent les filtres `menuId`, `dateDebut` et `dat
 L'écriture analytique est volontairement placée après l'enregistrement en base relationnelle et n'interrompt jamais le parcours : une indisponibilité de MongoDB fait perdre une statistique, jamais une vente.
 
 Les composants d'accès sont isolés dans `services/analyticsService.js`. Aucun contrôleur n'écrit de requête MongoDB directement.
+
+---
+
+## Règles de gestion
+
+Les règles tarifaires sont isolées dans `services/tarificationService.js`, hors des contrôleurs. Elles sont ainsi testables indépendamment du transport HTTP, réutilisées à l'identique par la simulation et par la création de commande, et modifiables en un seul endroit.
+
+| Règle | Application |
+|---|---|
+| Nombre minimum de convives | Une commande sous le minimum du menu est refusée par le serveur, avec le minimum requis dans la réponse |
+| Prix des convives supplémentaires | Le prix affiché correspond au nombre minimum de personnes. Chaque convive supplémentaire est facturé au prorata, soit `prix_min / min_personnes` |
+| Remise commerciale | 10 % dès que la commande dépasse de 5 convives ou plus le minimum du menu. Elle porte sur la prestation, pas sur la livraison |
+| Frais de livraison | Nuls dans Bordeaux. Ailleurs : 5 € fixes, majorés de 0,59 € par kilomètre |
+
+**Pourquoi la proportionnalité pour les convives supplémentaires.** Le cahier des charges fixe un prix pour un nombre minimum de personnes, sans définir de tarif unitaire au delà. Facturer au prorata garantit un prix par personne constant, cohérent avec le tarif annoncé au client, et évite tout effet de seuil arbitraire.
+
+### Exemple vérifiable
+
+Menu « La Magie de Noël » : minimum 8 convives, 480 €, soit 60 € par personne.
+
+| Cas | Calcul | Total |
+|---|---|---|
+| 8 convives, Bordeaux | 480 € | **480,00 €** |
+| 13 convives, Bordeaux | 780 € brut, remise 78 € | **702,00 €** |
+| 13 convives, Mérignac à 10 km | 702 € + 5 € + 5,90 € | **712,90 €** |
+| 5 convives | refusé | **erreur 400** |
+
+---
+
+## Comptes de démonstration
+
+Le jeu de données `seed.sql` crée trois comptes, avec des empreintes bcrypt réelles de coût 12.
+
+| Email | Mot de passe | Rôle |
+|---|---|---|
+| `jose.admin@viteetgourmand.fr` | `Admin2026!` | admin |
+| `pierre.employe@viteetgourmand.fr` | `Employe2026!` | employe |
+| `jean.dupont@exemple.com` | `Client2026!` | client |
+
+Ces comptes sont réservés à l'environnement de démonstration.
 
 ---
 
@@ -261,7 +302,7 @@ Cette section distingue volontairement ce qui est **effectivement implémenté**
 
 **Échappement XSS en sortie.** Aucun échappement systématique n'est en place à ce jour. Il deviendra indispensable dès l'affichage des avis clients, qui sont du texte libre.
 
-**Validation des données côté serveur.** La validation repose actuellement sur les attributs HTML5 côté client, qui sont contournables. Une validation serveur doit être ajoutée sur l'ensemble des points d'entrée.
+**Validation serveur sur la création de commande.** Champs obligatoires, format et cohérence de la date de prestation, nombre minimum de convives : tout est revérifié côté serveur, indépendamment des attributs HTML5 du formulaire, qui sont contournables. Les autres points d'entrée restent à couvrir.
 
 **Limitation du nombre de tentatives de connexion.** Aucune protection contre le bourrage d'identifiants n'est en place.
 
@@ -289,7 +330,6 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 
 ### Reste à implémenter
 
-- Correction des règles de gestion tarifaires, qui ne correspondent pas à l'énoncé
 - Envoi d'emails : bienvenue, réinitialisation de mot de passe, confirmation de commande, retour de matériel, invitation à déposer un avis
 - Réinitialisation de mot de passe
 - Filtres dynamiques sur la vue globale des menus, sans rechargement de page
@@ -298,5 +338,5 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 - Espace utilisateur, espace employé, espace administrateur
 - Modération et affichage des avis
 - Formulaire de contact
-- Jeu de données de test avec des empreintes bcrypt valides
+
 - Conformité RGAA
