@@ -3,218 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Menus - Espace Professionnel | Vite & Gourmand</title>
-    
-    <!-- Bootstrap 5 -->
+    <title>Gestion des menus - Espace professionnel | Vite &amp; Gourmand</title>
+    <meta name="description" content="Espace de gestion de la carte réservé aux administrateurs et employés de Vite &amp; Gourmand.">
+    <meta name="robots" content="noindex">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
-    <!-- Mon CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
 
-    <!-- Menu de navigation Professionnel -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold text-success" href="index.html">Vite & Gourmand <span class="badge bg-danger ms-2 fs-6">PRO</span></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand fw-bold text-success" href="index.html">
+                Vite &amp; Gourmand <span class="badge bg-danger ms-2 fs-6">PRO</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Ouvrir le menu de navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
                     <li class="nav-item"><a class="nav-link" href="index.html">Retour au site</a></li>
-                    <li class="nav-item"><a class="nav-link active fw-semibold" href="admin-menus.html"><i class="bi bi-journal-rich me-1"></i> Gérer les Menus</a></li>
-                    <li class="nav-item dropdown ms-lg-3">
-                        <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle fs-5"></i> José (Admin)
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow" aria-labelledby="userDropdown">
-                            <li><span class="dropdown-item-text text-muted small">Rôle : Administrateur</span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="login.html"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
-                        </ul>
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">Mon espace</a></li>
+                    <li class="nav-item"><a class="nav-link active fw-semibold" href="admin-menus.html" aria-current="page">
+                        <i class="bi bi-journal-rich me-1" aria-hidden="true"></i>Gérer les menus</a></li>
+                    <li class="nav-item ms-lg-3">
+                        <span class="nav-link text-white-50" id="navUtilisateur"></span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-sm btn-outline-light" id="btnDeconnexion">Déconnexion</button>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Contenu Principal de l'Espace Pro -->
     <main class="flex-grow-1 py-5">
         <div class="container">
-            
-            <!-- En-tête de la zone d'administration -->
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-                <div>
-                    <h1 class="h2 fw-bold text-dark mb-1">Configuration des Menus</h1>
-                    <p class="text-muted mb-0">Espace de gestion réservé aux Administrateurs et Employés pour mettre à jour la carte.</p>
+
+            <div id="etatChargement" class="text-center py-5">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Chargement de la carte</span>
                 </div>
-                <button class="btn btn-success d-flex align-items-center gap-2 py-2 px-4" data-bs-toggle="modal" data-bs-target="#menuModal">
-                    <i class="bi bi-plus-circle-fill"></i> Ajouter une formule
-                </button>
             </div>
 
-            <!-- Cartes de statistiques rapides -->
-            <div class="row g-4 mb-5">
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-3 rounded">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="icon-box bg-success-subtle text-success p-3 rounded">
-                                <i class="bi bi-book fs-4"></i>
+            <div id="etatRefus" class="d-none">
+                <div class="alert alert-danger" role="alert">
+                    Cet espace est réservé aux employés et aux administrateurs.
+                </div>
+                <a href="login.html" class="btn btn-success">Se connecter</a>
+            </div>
+
+            <div id="contenu" class="d-none">
+
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+                    <div>
+                        <h1 class="h2 fw-bold text-dark mb-1">Configuration des menus</h1>
+                        <p class="text-muted mb-0">Espace de gestion réservé aux administrateurs et employés pour mettre à jour la carte.</p>
+                    </div>
+                    <button class="btn btn-success d-flex align-items-center gap-2 py-2 px-4" id="btnNouveauMenu">
+                        <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>Ajouter une formule
+                    </button>
+                </div>
+
+                <div id="zoneMessage" class="alert d-none" role="status" aria-live="polite"></div>
+
+                <!-- Statistiques calculées à partir des menus réellement chargés -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm p-3 rounded">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-box bg-success-subtle text-success p-3 rounded">
+                                    <i class="bi bi-book fs-4" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-muted mb-0 small text-uppercase fw-semibold">Formules actives</h2>
+                                    <span class="fs-3 fw-bold" id="statMenus">—</span>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="text-muted mb-0 small text-uppercase fw-semibold">Formules Actives</h6>
-                                <span class="fs-3 fw-bold">5 Menus</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm p-3 rounded">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-box bg-warning-subtle text-warning p-3 rounded">
+                                    <i class="bi bi-tag fs-4" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-muted mb-0 small text-uppercase fw-semibold">Prix moyen de base</h2>
+                                    <span class="fs-3 fw-bold" id="statPrix">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm p-3 rounded">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-box bg-info-subtle text-info p-3 rounded">
+                                    <i class="bi bi-box-seam fs-4" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-muted mb-0 small text-uppercase fw-semibold">Total stocks restants</h2>
+                                    <span class="fs-3 fw-bold" id="statStock">—</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-3 rounded">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="icon-box bg-warning-subtle text-warning p-3 rounded">
-                                <i class="bi bi-tag fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0 small text-uppercase fw-semibold">Prix Moyen de Base</h6>
-                                <span class="fs-3 fw-bold">356,00 €</span>
-                            </div>
+
+                <!-- Tableau des menus -->
+                <div class="card border-0 shadow-sm overflow-hidden rounded mb-5">
+                    <div class="card-header bg-white border-0 py-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                        <h2 class="h5 fw-bold mb-0">Tous les menus répertoriés</h2>
+                        <div class="d-flex gap-2">
+                            <label for="filtreTheme" class="visually-hidden">Filtrer par thème</label>
+                            <select class="form-select form-select-sm bg-light" id="filtreTheme" style="width: 180px;">
+                                <option value="">Tous les thèmes</option>
+                                <option value="classique">Classique</option>
+                                <option value="noel">Noël</option>
+                                <option value="paques">Pâques</option>
+                                <option value="evenement">Événement</option>
+                            </select>
                         </div>
                     </div>
+                    <div id="tableauMenus"></div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-3 rounded">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="icon-box bg-info-subtle text-info p-3 rounded">
-                                <i class="bi bi-box-seam fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0 small text-uppercase fw-semibold">Total Stocks Restants</h6>
-                                <span class="fs-3 fw-bold">26 Commandes</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Tableau de gestion globale des menus -->
-            <div class="card border-0 shadow-sm overflow-hidden rounded">
-                <div class="card-header bg-white border-0 py-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h3 class="h5 fw-bold mb-0">Tous les Menus répertoriés</h3>
-                    <!-- Filtres rapides -->
-                    <div class="d-flex gap-2">
-                        <select class="form-select form-select-sm bg-light" style="width: 180px;">
-                            <option value="">Tous les thèmes</option>
-                            <option value="classique">Classique</option>
-                            <option value="noel">Noël</option>
-                            <option value="paques">Pâques</option>
-                            <option value="evenement">Événement</option>
-                        </select>
+                <!-- Horaires d'ouverture -->
+                <div class="card border-0 shadow-sm rounded">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h2 class="h5 fw-bold mb-0">Horaires d'ouverture</h2>
+                        <p class="text-muted small mb-0">Ils s'affichent dans le pied de page du site public.</p>
                     </div>
+                    <div class="card-body" id="zoneHoraires"></div>
                 </div>
-                
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="ps-4">Nom du Menu</th>
-                                <th scope="col">Thème</th>
-                                <th scope="col">Régime</th>
-                                <th scope="col">Min. Personnes</th>
-                                <th scope="col">Prix Min.</th>
-                                <th scope="col">Stock Restant</th>
-                                <th scope="col" class="text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Ligne 1 : Buffet Champêtre -->
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark">Le Buffet Champêtre du Sud-Ouest</div>
-                                    <span class="text-muted small">Buffet convivial par le chef José</span>
-                                </td>
-                                <td><span class="badge bg-secondary-subtle text-secondary">Classique</span></td>
-                                <td><span class="badge bg-success-subtle text-success">Classique</span></td>
-                                <td class="fw-semibold">15 pers.</td>
-                                <td class="fw-semibold text-success">290,00 €</td>
-                                <td><span class="badge bg-light text-dark border">8 restants</span></td>
-                                <td class="text-end pe-4">
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary border-0" title="Modifier" data-bs-toggle="modal" data-bs-target="#menuModal"><i class="bi bi-pencil-fill"></i></button>
-                                        <button class="btn btn-outline-danger border-0" title="Supprimer" onclick="confirm('Supprimer ce menu ?')"><i class="bi bi-trash-fill"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Ligne 2 : Éveil des Sens -->
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark">Éveil des Sens (Végétarien)</div>
-                                    <span class="text-muted small">Expérience gastronomique par Julie</span>
-                                </td>
-                                <td><span class="badge bg-secondary-subtle text-secondary">Événement</span></td>
-                                <td><span class="badge bg-success-subtle text-success">Végétarien</span></td>
-                                <td class="fw-semibold">10 pers.</td>
-                                <td class="fw-semibold text-success">380,00 €</td>
-                                <td><span class="badge bg-light text-dark border">4 restants</span></td>
-                                <td class="text-end pe-4">
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary border-0" title="Modifier" data-bs-toggle="modal" data-bs-target="#menuModal"><i class="bi bi-pencil-fill"></i></button>
-                                        <button class="btn btn-outline-danger border-0" title="Supprimer" onclick="confirm('Supprimer ce menu ?')"><i class="bi bi-trash-fill"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Ligne 3 : La Magie de Noël -->
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark">La Magie de Noël</div>
-                                    <span class="text-muted small">Formule féérique haut de gamme</span>
-                                </td>
-                                <td><span class="badge bg-secondary-subtle text-secondary">Noël</span></td>
-                                <td><span class="badge bg-success-subtle text-success">Classique</span></td>
-                                <td class="fw-semibold">8 pers.</td>
-                                <td class="fw-semibold text-success">480,00 €</td>
-                                <td><span class="badge bg-light text-dark border">3 restants</span></td>
-                                <td class="text-end pe-4">
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary border-0" title="Modifier" data-bs-toggle="modal" data-bs-target="#menuModal"><i class="bi bi-pencil-fill"></i></button>
-                                        <button class="btn btn-outline-danger border-0" title="Supprimer" onclick="confirm('Supprimer ce menu ?')"><i class="bi bi-trash-fill"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
+            </div>
         </div>
     </main>
 
-    <!-- MODALE COMPLÈTE : AJOUTER / MODIFIER UN MENU -->
+    <!-- Modale : création et modification d'un menu -->
     <div class="modal fade" id="menuModal" tabindex="-1" aria-labelledby="menuModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title fw-bold" id="menuModalLabel"><i class="bi bi-pencil-square me-2"></i>Configurer le Menu</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title h5 fw-bold" id="menuModalLabel">
+                        <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Configurer le menu
+                    </h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <form onsubmit="alert('Le menu a été enregistré avec succès !'); bootstrap.Modal.getInstance(document.getElementById('menuModal')).hide(); return false;">
-                        
-                        <!-- Ligne 1 : Titre & Description -->
+                <form id="menuForm" novalidate>
+                    <div class="modal-body">
+                        <input type="hidden" id="menuId">
+
                         <div class="mb-3">
-                            <label for="menuName" class="form-label fw-semibold">Titre du Menu</label>
-                            <input type="text" class="form-control bg-light" id="menuName" placeholder="Ex: Le Buffet Champêtre du Sud-Ouest" required>
+                            <label for="menuName" class="form-label fw-semibold">Nom du menu</label>
+                            <input type="text" class="form-control bg-light" id="menuName"
+                                   placeholder="Ex : Le Buffet Champêtre du Sud-Ouest" required>
                         </div>
 
                         <div class="mb-3">
-                            <label for="menuDesc" class="form-label fw-semibold">Description (Présentation du menu)</label>
-                            <textarea class="form-control bg-light" id="menuDesc" rows="2" placeholder="Présentez le concept du menu..." required></textarea>
+                            <label for="menuDesc" class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control bg-light" id="menuDesc" rows="2"
+                                      placeholder="Présentez le concept du menu..." required></textarea>
                         </div>
 
-                        <!-- Ligne 2 : Thème & Régime -->
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6">
+                            <div class="col-sm-6">
                                 <label for="menuTheme" class="form-label fw-semibold">Thème</label>
                                 <select class="form-select bg-light" id="menuTheme" required>
                                     <option value="classique">Classique</option>
@@ -223,87 +179,491 @@
                                     <option value="evenement">Événement</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label for="menuRegime" class="form-label fw-semibold">Régime Alimentaire</label>
+                            <div class="col-sm-6">
+                                <label for="menuRegime" class="form-label fw-semibold">Régime</label>
                                 <select class="form-select bg-light" id="menuRegime" required>
                                     <option value="classique">Classique</option>
                                     <option value="vegetarien">Végétarien</option>
                                     <option value="vegan">Vegan</option>
-                                    <option value="sans-gluten">Sans Gluten</option>
+                                    <option value="sans-gluten">Sans gluten</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Ligne 3 : Personnes Min, Prix Min & Stock -->
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label for="menuMinPers" class="form-label fw-semibold">Nombre de personnes min.</label>
-                                <input type="number" class="form-control bg-light" id="menuMinPers" placeholder="Ex: 15" min="1" required>
+                            <div class="col-sm-4">
+                                <label for="menuMinPers" class="form-label fw-semibold">Minimum de personnes</label>
+                                <input type="number" class="form-control bg-light" id="menuMinPers" min="1" required>
                             </div>
-                            <div class="col-md-4">
-                                <label for="menuPriceMin" class="form-label fw-semibold">Prix pour le min. de personnes (€)</label>
-                                <input type="number" step="0.01" class="form-control bg-light" id="menuPriceMin" placeholder="Ex: 290.00" required>
+                            <div class="col-sm-4">
+                                <label for="menuPriceMin" class="form-label fw-semibold">Prix pour ce minimum</label>
+                                <input type="number" step="0.01" min="0" class="form-control bg-light" id="menuPriceMin" required>
                             </div>
-                            <div class="col-md-4">
-                                <label for="menuStock" class="form-label fw-semibold">Stock disponible (commandes max)</label>
-                                <input type="number" class="form-control bg-light" id="menuStock" placeholder="Ex: 8" min="0" required>
+                            <div class="col-sm-4">
+                                <label for="menuStock" class="form-label fw-semibold">Stock</label>
+                                <input type="number" class="form-control bg-light" id="menuStock" min="0" required>
                             </div>
                         </div>
 
-                        <!-- Ligne 4 : Galerie d'images -->
                         <div class="mb-3">
-                            <label for="menuImages" class="form-label fw-semibold">Galerie d'images (Saisir les URLs des photos, séparées par une virgule)</label>
-                            <textarea class="form-control bg-light" id="menuImages" rows="2" placeholder="Ex: https://image1.jpg, https://image2.jpg" required></textarea>
+                            <label for="menuImages" class="form-label fw-semibold">Images</label>
+                            <textarea class="form-control bg-light" id="menuImages" rows="2"
+                                      placeholder="Une URL par ligne, ou séparées par des virgules"
+                                      aria-describedby="aideImages"></textarea>
+                            <div id="aideImages" class="form-text">La première image sert de visuel principal dans le catalogue.</div>
                         </div>
 
-                        <!-- Ligne 5 : Conditions de commande -->
-                        <div class="mb-3">
-                            <label for="menuConditions" class="form-label fw-semibold">Conditions logistiques de ce menu</label>
-                            <input type="text" class="form-control bg-light" id="menuConditions" placeholder="Ex: À commander au moins 5 jours ouvrés à l'avance. À conserver entre 0°C et 4°C." required>
+                        <div class="mb-4">
+                            <label for="menuConditions" class="form-label fw-semibold">Conditions de commande</label>
+                            <input type="text" class="form-control bg-light" id="menuConditions"
+                                   placeholder="Ex : à commander au moins 5 jours ouvrés à l'avance." required>
                         </div>
 
-                        <!-- Ligne 6 : Liste des Plats et Allergènes -->
-                        <div class="card border-0 bg-light p-3 mb-4 rounded">
-                            <h6 class="fw-bold text-success mb-3"><i class="bi bi-egg-fried me-2"></i>Composition détaillée & Allergènes</h6>
-                            
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label for="menuEntrees" class="form-label fw-semibold small text-uppercase">Entrées (Un plat par ligne)</label>
-                                    <textarea class="form-control bg-white" id="menuEntrees" rows="3" placeholder="Ex:
-Planche de charcuteries [Sulfite]
-Terrine de canard [Sulfite]" required></textarea>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="menuPlats" class="form-label fw-semibold small text-uppercase">Plats (Un plat par ligne)</label>
-                                    <textarea class="form-control bg-white" id="menuPlats" rows="3" placeholder="Ex:
-Manchons de canard confits" required></textarea>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="menuDesserts" class="form-label fw-semibold small text-uppercase">Desserts (Un plat par ligne)</label>
-                                    <textarea class="form-control bg-white" id="menuDesserts" rows="3" placeholder="Ex:
-Cannelés bordelais [Gluten, Lactose, Œufs]" required></textarea>
-                                </div>
+                        <hr>
+
+                        <h3 class="h6 fw-bold mb-1">Composition</h3>
+                        <p class="text-muted small" id="aideComposition">
+                            Un plat par ligne. Pour déclarer des allergènes, ajoutez-les entre crochets :
+                            <code>Terrine de canard [Gluten, Œufs]</code>.
+                            Un plat déjà existant est réutilisé, il n'est jamais dupliqué.
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="menuEntrees" class="form-label fw-semibold">Entrées</label>
+                                <textarea class="form-control bg-white" id="menuEntrees" rows="4"
+                                          aria-describedby="aideComposition"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="menuPlats" class="form-label fw-semibold">Plats</label>
+                                <textarea class="form-control bg-white" id="menuPlats" rows="4"
+                                          aria-describedby="aideComposition"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="menuDesserts" class="form-label fw-semibold">Desserts</label>
+                                <textarea class="form-control bg-white" id="menuDesserts" rows="4"
+                                          aria-describedby="aideComposition"></textarea>
                             </div>
                         </div>
-
-                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-success px-4">Enregistrer les modifications</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success" id="btnEnregistrerMenu">Enregistrer</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Pied de page simplifié (Espace Pro) -->
-    <footer class="bg-dark text-white py-4 mt-auto border-top border-secondary">
-        <div class="container text-center">
-            <p class="text-white-50 mb-0 small">© 2026 Vite & Gourmand - Espace Professionnel Sécurisé (Administrateurs & Employés).</p>
+    <footer class="bg-dark text-white-50 py-3 mt-auto">
+        <div class="container text-center small">
+            Espace professionnel Vite &amp; Gourmand.
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ====================================================================
+        // GESTION DE LA CARTE
+        //
+        // Page réservée aux employés et administrateurs. Le contrôle repose
+        // sur la session serveur : l'affichage conditionnel ci-dessous est
+        // un confort d'interface, pas une sécurité. Chaque route de l'API
+        // revérifie le rôle.
+        // ====================================================================
+
+        let utilisateur = null;
+        let menus = [];
+        let tousLesPlats = [];
+
+        const $ = (id) => document.getElementById(id);
+
+        function echapper(v) {
+            if (v === null || v === undefined) return '';
+            return String(v)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function message(texte, type) {
+            const zone = $('zoneMessage');
+            zone.className = 'alert alert-' + (type || 'success');
+            zone.textContent = texte;
+            zone.classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => zone.classList.add('d-none'), 7000);
+        }
+
+        function euros(v) {
+            return Number(v).toFixed(2).replace('.', ',') + ' €';
+        }
+
+        async function api(url, options) {
+            const reponse = await fetch(url, Object.assign({
+                headers: { 'Content-Type': 'application/json' }
+            }, options || {}));
+
+            let donnees = {};
+            try { donnees = await reponse.json(); } catch (e) { /* réponse vide */ }
+
+            if (!reponse.ok) {
+                const details = donnees.details ? ' ' + donnees.details.join(' ') : '';
+                throw new Error((donnees.error || 'Erreur ' + reponse.status) + details);
+            }
+            return donnees;
+        }
+
+        // ------------------------------------------------------------------
+        // COMPOSITION : conversion entre le texte saisi et les plats en base
+        // ------------------------------------------------------------------
+
+        /**
+         * Transforme une zone de texte en liste de plats.
+         * Syntaxe acceptée : un plat par ligne, allergènes entre crochets.
+         *   Terrine de canard [Gluten, Œufs]
+         */
+        function analyserComposition(texte, type) {
+            return texte.split('\n')
+                .map(l => l.trim())
+                .filter(Boolean)
+                .map(ligne => {
+                    const correspondance = ligne.match(/^(.*?)\s*\[(.*)\]\s*$/);
+                    if (correspondance) {
+                        return {
+                            nom: correspondance[1].trim(),
+                            type: type,
+                            allergenes: correspondance[2].split(',').map(a => a.trim()).filter(Boolean)
+                        };
+                    }
+                    return { nom: ligne, type: type, allergenes: [] };
+                })
+                .filter(p => p.nom.length > 0);
+        }
+
+        /**
+         * Transforme une liste de plats en texte pour la zone de saisie.
+         */
+        function formaterComposition(plats) {
+            return (plats || []).map(p =>
+                p.allergenes && p.allergenes.length > 0
+                    ? p.nom + ' [' + p.allergenes.join(', ') + ']'
+                    : p.nom
+            ).join('\n');
+        }
+
+        /**
+         * Retrouve un plat existant par son nom, ou le crée.
+         *
+         * Le cahier des charges précise qu'un plat peut appartenir à
+         * plusieurs menus : on ne duplique donc jamais un plat déjà présent
+         * en base, on réutilise son identifiant.
+         */
+        async function trouverOuCreerPlat(plat) {
+            const existant = tousLesPlats.find(p =>
+                p.nom.toLowerCase() === plat.nom.toLowerCase()
+            );
+            if (existant) return existant.id;
+
+            const cree = await api('/api/catalogue/plats', {
+                method: 'POST',
+                body: JSON.stringify(plat)
+            });
+            tousLesPlats.push({ id: cree.plat.id, nom: cree.plat.nom, type: cree.plat.type });
+            return cree.plat.id;
+        }
+
+        // ------------------------------------------------------------------
+        // AFFICHAGE
+        // ------------------------------------------------------------------
+
+        function afficherStatistiques() {
+            const actifs = menus.filter(m => m.stock > 0);
+            $('statMenus').textContent = actifs.length + (actifs.length > 1 ? ' menus' : ' menu');
+
+            if (menus.length > 0) {
+                const moyenne = menus.reduce((s, m) => s + m.prixMin, 0) / menus.length;
+                $('statPrix').textContent = euros(moyenne);
+            } else {
+                $('statPrix').textContent = '—';
+            }
+
+            const stock = menus.reduce((s, m) => s + m.stock, 0);
+            $('statStock').textContent = stock + (stock > 1 ? ' commandes' : ' commande');
+        }
+
+        function afficherTableau() {
+            const theme = $('filtreTheme').value;
+            const visibles = theme ? menus.filter(m => m.theme === theme) : menus;
+            const zone = $('tableauMenus');
+
+            if (visibles.length === 0) {
+                zone.innerHTML = '<p class="text-muted p-4 mb-0">Aucun menu ne correspond à ce filtre.</p>';
+                return;
+            }
+
+            zone.innerHTML = '<div class="table-responsive"><table class="table table-hover align-middle mb-0">'
+                + '<thead class="table-light"><tr>'
+                + '<th scope="col" class="ps-4">Nom du menu</th><th scope="col">Thème</th>'
+                + '<th scope="col">Régime</th><th scope="col">Min. personnes</th>'
+                + '<th scope="col">Prix min.</th><th scope="col">Stock restant</th>'
+                + '<th scope="col" class="text-end pe-4">Actions</th>'
+                + '</tr></thead><tbody>'
+                + visibles.map(m =>
+                    '<tr>'
+                  + '<td class="ps-4 fw-semibold">' + echapper(m.titre) + '</td>'
+                  + '<td><span class="badge bg-dark">' + echapper(m.theme) + '</span></td>'
+                  + '<td><span class="badge bg-success-subtle text-success">' + echapper(m.regime) + '</span></td>'
+                  + '<td>' + m.minPersonnes + '</td>'
+                  + '<td class="fw-semibold">' + euros(m.prixMin) + '</td>'
+                  + '<td>' + (m.stock > 0
+                        ? '<span class="badge bg-info-subtle text-info">' + m.stock + '</span>'
+                        : '<span class="badge bg-secondary">Retiré</span>') + '</td>'
+                  + '<td class="text-end pe-4">'
+                  + '<button class="btn btn-outline-primary border-0" data-editer="' + m.id + '" '
+                  + 'aria-label="Modifier le menu ' + echapper(m.titre) + '">'
+                  + '<i class="bi bi-pencil-fill" aria-hidden="true"></i></button> '
+                  + '<button class="btn btn-outline-danger border-0" data-supprimer="' + m.id + '" '
+                  + 'aria-label="Supprimer le menu ' + echapper(m.titre) + '">'
+                  + '<i class="bi bi-trash-fill" aria-hidden="true"></i></button>'
+                  + '</td></tr>'
+                ).join('')
+                + '</tbody></table></div>';
+        }
+
+        async function chargerMenus() {
+            // Route de gestion, et non /api/menus : le catalogue public ne
+            // liste que les menus en stock. Un menu retiré doit rester
+            // visible ici, sans quoi il serait impossible de le remettre en
+            // vente.
+            const donnees = await api('/api/catalogue/menus');
+            menus = donnees.menus;
+            afficherStatistiques();
+            afficherTableau();
+        }
+
+        async function chargerPlats() {
+            const donnees = await api('/api/catalogue/plats');
+            tousLesPlats = donnees.plats;
+        }
+
+        const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+        async function chargerHoraires() {
+            const zone = $('zoneHoraires');
+            try {
+                const donnees = await api('/api/catalogue/horaires');
+
+                zone.innerHTML = donnees.horaires.map(h => `
+                    <div class="row g-2 align-items-end mb-2 pb-2 border-bottom">
+                        <div class="col-6 col-md-2">
+                            <span class="fw-semibold">${JOURS[h.jour_semaine - 1]}</span>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="ferme${h.jour_semaine}"
+                                       data-ferme="${h.jour_semaine}" ${h.ferme ? 'checked' : ''}>
+                                <label class="form-check-label" for="ferme${h.jour_semaine}">Fermé</label>
+                            </div>
+                        </div>
+                        <div class="col-5 col-md-3">
+                            <label for="ouv${h.jour_semaine}" class="form-label small text-muted mb-0">Ouverture</label>
+                            <input type="time" class="form-control form-control-sm" id="ouv${h.jour_semaine}"
+                                   value="${h.heure_ouverture || ''}" ${h.ferme ? 'disabled' : ''}>
+                        </div>
+                        <div class="col-5 col-md-3">
+                            <label for="fer${h.jour_semaine}" class="form-label small text-muted mb-0">Fermeture</label>
+                            <input type="time" class="form-control form-control-sm" id="fer${h.jour_semaine}"
+                                   value="${h.heure_fermeture || ''}" ${h.ferme ? 'disabled' : ''}>
+                        </div>
+                        <div class="col-2 col-md-2">
+                            <button class="btn btn-sm btn-outline-success w-100" data-horaire="${h.jour_semaine}">
+                                Enregistrer
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (erreur) {
+                zone.innerHTML = '<div class="alert alert-danger mb-0">' + echapper(erreur.message) + '</div>';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // FORMULAIRE DE MENU
+        // ------------------------------------------------------------------
+
+        function ouvrirFormulaire(menu) {
+            $('menuForm').reset();
+            $('menuId').value = menu ? menu.id : '';
+            $('menuModalLabel').innerHTML = menu
+                ? '<i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Modifier le menu'
+                : '<i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Nouvelle formule';
+
+            if (menu) {
+                $('menuName').value = menu.titre;
+                $('menuDesc').value = menu.description;
+                $('menuTheme').value = menu.theme;
+                $('menuRegime').value = menu.regime;
+                $('menuMinPers').value = menu.minPersonnes;
+                $('menuPriceMin').value = menu.prixMin;
+                $('menuStock').value = menu.stock;
+                $('menuImages').value = menu.images.join('\n');
+                $('menuConditions').value = menu.conditions;
+                $('menuEntrees').value = formaterComposition(menu.plats && menu.plats.entrees);
+                $('menuPlats').value = formaterComposition(menu.plats && menu.plats.plats);
+                $('menuDesserts').value = formaterComposition(menu.plats && menu.plats.desserts);
+            }
+
+            new bootstrap.Modal($('menuModal')).show();
+        }
+
+        $('btnNouveauMenu').addEventListener('click', () => ouvrirFormulaire(null));
+
+        $('menuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const bouton = $('btnEnregistrerMenu');
+            bouton.disabled = true;
+            bouton.textContent = 'Enregistrement...';
+
+            try {
+                const corps = {
+                    titre: $('menuName').value.trim(),
+                    description: $('menuDesc').value.trim(),
+                    theme: $('menuTheme').value,
+                    regime: $('menuRegime').value,
+                    minPersonnes: parseInt($('menuMinPers').value, 10),
+                    prixMin: parseFloat($('menuPriceMin').value),
+                    stock: parseInt($('menuStock').value, 10),
+                    conditions: $('menuConditions').value.trim(),
+                    images: $('menuImages').value.split(/[\n,]/).map(u => u.trim()).filter(Boolean)
+                };
+
+                const id = $('menuId').value;
+                const resultat = id
+                    ? await api('/api/catalogue/menus/' + id, { method: 'PATCH', body: JSON.stringify(corps) })
+                    : await api('/api/catalogue/menus', { method: 'POST', body: JSON.stringify(corps) });
+
+                const menuId = resultat.menu.id;
+
+                // Composition : les plats sont retrouvés ou créés, puis la
+                // composition du menu est remplacée par la liste obtenue.
+                const composition = [
+                    ...analyserComposition($('menuEntrees').value, 'entree'),
+                    ...analyserComposition($('menuPlats').value, 'plat'),
+                    ...analyserComposition($('menuDesserts').value, 'dessert')
+                ];
+
+                const platIds = [];
+                for (const plat of composition) {
+                    platIds.push(await trouverOuCreerPlat(plat));
+                }
+
+                await api('/api/catalogue/menus/' + menuId + '/plats', {
+                    method: 'PUT',
+                    body: JSON.stringify({ platIds: platIds })
+                });
+
+                bootstrap.Modal.getInstance($('menuModal')).hide();
+                message(resultat.message + ' Composition : ' + platIds.length + ' plat(s).');
+                await chargerMenus();
+            } catch (erreur) {
+                message(erreur.message, 'danger');
+            } finally {
+                bouton.disabled = false;
+                bouton.textContent = 'Enregistrer';
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // ÉVÉNEMENTS DÉLÉGUÉS
+        // ------------------------------------------------------------------
+
+        document.addEventListener('click', async (e) => {
+            const cible = e.target.closest('button');
+            if (!cible) return;
+
+            try {
+                if (cible.dataset.editer) {
+                    // La vue détaillée est rechargée pour disposer de la
+                    // composition, absente de la liste globale.
+                    const menu = await api('/api/menus/' + cible.dataset.editer);
+                    ouvrirFormulaire(menu);
+                }
+
+                else if (cible.dataset.supprimer) {
+                    if (!confirm('Supprimer ce menu ? S\'il a déjà été commandé, il sera simplement retiré du catalogue.')) return;
+                    const r = await api('/api/catalogue/menus/' + cible.dataset.supprimer, { method: 'DELETE' });
+                    message(r.message, r.supprime ? 'success' : 'warning');
+                    await chargerMenus();
+                }
+
+                else if (cible.dataset.horaire) {
+                    const jour = cible.dataset.horaire;
+                    const ferme = $('ferme' + jour).checked;
+                    const r = await api('/api/catalogue/horaires/' + jour, {
+                        method: 'PATCH',
+                        body: JSON.stringify({
+                            ferme: ferme,
+                            heure_ouverture: ferme ? null : $('ouv' + jour).value,
+                            heure_fermeture: ferme ? null : $('fer' + jour).value
+                        })
+                    });
+                    message(r.message);
+                    await chargerHoraires();
+                }
+            } catch (erreur) {
+                message(erreur.message, 'danger');
+            }
+        });
+
+        // Un jour fermé n'a pas d'horaires à saisir.
+        document.addEventListener('change', (e) => {
+            if (e.target.dataset && e.target.dataset.ferme) {
+                const jour = e.target.dataset.ferme;
+                $('ouv' + jour).disabled = e.target.checked;
+                $('fer' + jour).disabled = e.target.checked;
+            }
+        });
+
+        $('filtreTheme').addEventListener('change', afficherTableau);
+
+        $('btnDeconnexion').addEventListener('click', async () => {
+            try { await api('/api/auth/logout', { method: 'POST' }); } catch (e) { /* on part quand même */ }
+            window.location.href = 'index.html';
+        });
+
+        // ------------------------------------------------------------------
+        // INITIALISATION
+        // ------------------------------------------------------------------
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                utilisateur = await api('/api/auth/me');
+            } catch (erreur) {
+                $('etatChargement').classList.add('d-none');
+                $('etatRefus').classList.remove('d-none');
+                return;
+            }
+
+            if (!['employe', 'admin'].includes(utilisateur.role)) {
+                $('etatChargement').classList.add('d-none');
+                $('etatRefus').classList.remove('d-none');
+                return;
+            }
+
+            $('navUtilisateur').textContent = utilisateur.prenom + ' ' + utilisateur.nom
+                                            + ' (' + utilisateur.role + ')';
+
+            try {
+                await Promise.all([chargerMenus(), chargerPlats(), chargerHoraires()]);
+                $('etatChargement').classList.add('d-none');
+                $('contenu').classList.remove('d-none');
+            } catch (erreur) {
+                $('etatChargement').classList.add('d-none');
+                $('contenu').classList.remove('d-none');
+                message(erreur.message, 'danger');
+            }
+        });
+    </script>
 </body>
 </html>

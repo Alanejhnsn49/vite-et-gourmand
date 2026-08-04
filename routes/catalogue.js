@@ -11,6 +11,7 @@ router.get('/horaires', catalogueController.getHoraires);
 // depuis l'espace Administrateur ainsi que Employé".
 router.use(isAuthenticated, hasRole(['employe', 'admin']));
 
+router.get('/menus', catalogueController.listerMenusGestion);
 router.post('/menus', catalogueController.creerMenu);
 router.patch('/menus/:id', catalogueController.modifierMenu);
 router.delete('/menus/:id', catalogueController.supprimerMenu);

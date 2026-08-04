@@ -71,6 +71,43 @@ function joindreImages(images) {
 // ---------------------------------------------------------------------------
 
 /**
+ * GET /api/catalogue/menus
+ *
+ * Liste destinee a l'espace de gestion. Contrairement a GET /api/menus, qui
+ * sert le catalogue public et ne montre que les menus en stock, celle-ci
+ * renvoie TOUS les menus, y compris ceux dont le stock est a zero.
+ *
+ * Sans cela, un menu retire du catalogue disparaitrait aussi de l'interface
+ * de gestion, et deviendrait donc impossible a remettre en vente.
+ */
+exports.listerMenusGestion = async (req, res) => {
+    try {
+        const resultat = await db.query('SELECT * FROM menus ORDER BY id ASC');
+
+        res.json({
+            total: resultat.rows.length,
+            menus: resultat.rows.map(ligne => ({
+                id: ligne.id,
+                titre: ligne.titre,
+                description: ligne.description,
+                images: ligne.images
+                    ? String(ligne.images).split(',').map(u => u.trim()).filter(Boolean)
+                    : [],
+                theme: ligne.theme,
+                regime: ligne.regime,
+                minPersonnes: Number(ligne.min_personnes),
+                prixMin: Number(ligne.prix_min),
+                stock: Number(ligne.stock),
+                conditions: ligne.conditions,
+            })),
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des menus :", error);
+        res.status(500).json({ error: "Une erreur interne est survenue." });
+    }
+};
+
+/**
  * POST /api/catalogue/menus
  */
 exports.creerMenu = async (req, res) => {

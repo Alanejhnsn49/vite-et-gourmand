@@ -186,7 +186,7 @@ npm start
 │   └── mongo.js           Connexion MongoDB
 ├── controllers/           Logique métier
 ├── database/
-│   ├── schema.sql         Création des tables (10 tables)
+│   ├── schema.sql         Création des tables (11 tables)
 │   └── seed.sql           Jeu de données de test
 ├── maquette/              Maquettes desktop et mobile (PDF)
 ├── middleware/
@@ -260,6 +260,16 @@ Avec Docker Compose, `DATABASE_URL` et `MONGO_URL` sont reconstruites automatiqu
 | `GET` | `/api/users` | rôle `admin` | Liste des comptes |
 | `POST` | `/api/users/employes` | rôle `admin` | Création d'un compte employé |
 | `PATCH` | `/api/users/:id/actif` | rôle `admin` | Activation ou désactivation d'un compte |
+| `GET` | `/api/catalogue/horaires` | non | Horaires d'ouverture, pour le pied de page |
+| `PATCH` | `/api/catalogue/horaires/:jour` | rôles `employe` et `admin` | Modification des horaires d'un jour |
+| `GET` | `/api/catalogue/menus` | rôles `employe` et `admin` | Tous les menus, y compris ceux retirés du catalogue |
+| `POST` | `/api/catalogue/menus` | rôles `employe` et `admin` | Création d'un menu |
+| `PATCH` | `/api/catalogue/menus/:id` | rôles `employe` et `admin` | Modification d'un menu |
+| `DELETE` | `/api/catalogue/menus/:id` | rôles `employe` et `admin` | Suppression, ou retrait du catalogue si déjà commandé |
+| `PUT` | `/api/catalogue/menus/:id/plats` | rôles `employe` et `admin` | Composition d'un menu |
+| `GET` | `/api/catalogue/plats` | rôles `employe` et `admin` | Liste des plats avec leurs allergènes |
+| `POST` | `/api/catalogue/plats` | rôles `employe` et `admin` | Création d'un plat |
+| `DELETE` | `/api/catalogue/plats/:id` | rôles `employe` et `admin` | Suppression d'un plat |
 | `GET` | `/api/status` | non | Vérification de disponibilité |
 
 Les trois routes analytiques acceptent les filtres `menuId`, `dateDebut` et `dateFin`, combinables.
@@ -497,8 +507,4 @@ Le livret d'évaluation a identifié trois compétences à repasser. Voici l'ét
 
 ### Reste à implémenter
 
-- Interfaces des trois espaces : tout le back-end est écrit et testé, les pages restent des maquettes
-- Câblage des interfaces `dashboard.html` et `admin-menus.html` sur les API désormais disponibles
-- Gestion des menus et des plats depuis l'espace employé (création, modification, suppression)
-- Affichage des avis validés sur la page d'accueil
 - Conformité RGAA
