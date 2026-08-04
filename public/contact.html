@@ -185,22 +185,74 @@
 
     <!-- SCRIPT DE VALIDATION DU FORMULAIRE -->
     <script>
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             if (!this.checkValidity()) {
                 e.stopPropagation();
                 this.classList.add('was-validated');
                 return;
             }
 
-            // En cas de succès de la validation
-            const clientName = document.getElementById('contactPrenom').value;
-            alert(`Merci ${clientName} ! Votre demande de devis a bien été transmise à Julie et José. Nous reviendrons vers vous avec une proposition sur-mesure sous 24h à 48h.`);
-            
-            // Réinitialisation du formulaire
-            this.reset();
-            this.classList.remove('was-validated');
+            const bouton = this.querySelector('button[type="submit"]');
+            const libelleInitial = bouton ? bouton.innerHTML : '';
+
+            // Protection contre les doubles soumissions : le bouton est
+            // désactivé dès le premier clic et jusqu'à la réponse du serveur.
+            if (bouton) {
+                bouton.disabled = true;
+                bouton.innerHTML = 'Envoi en cours...';
+            }
+
+            const valeur = (id) => document.getElementById(id).value.trim();
+
+            // L'API attend un titre, une description et un email.
+            // Les champs du formulaire sont assemblés en une demande lisible
+            // par Julie et José.
+            const typeEvenement = document.getElementById('eventType');
+            const libelleType = typeEvenement.options[typeEvenement.selectedIndex].text;
+
+            const donnees = {
+                titre: `Demande de devis ${libelleType} pour ${valeur('guestCount')} personnes`,
+                email: valeur('contactEmail'),
+                description: [
+                    `Nom : ${valeur('contactNom')} ${valeur('contactPrenom')}`,
+                    `Téléphone : ${valeur('contactTel')}`,
+                    `Type d'événement : ${libelleType}`,
+                    `Nombre d'invités estimé : ${valeur('guestCount')}`,
+                    `Date souhaitée : ${valeur('eventDate')}`,
+                    '',
+                    'Message :',
+                    valeur('contactMessage')
+                ].join('\n')
+            };
+
+            try {
+                const reponse = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(donnees)
+                });
+
+                const resultat = await reponse.json();
+
+                if (!reponse.ok) {
+                    const details = resultat.details ? '\n\n' + resultat.details.join('\n') : '';
+                    alert((resultat.error || "Votre message n'a pas pu être envoyé.") + details);
+                    return;
+                }
+
+                alert(`Merci ${valeur('contactPrenom')} ! ${resultat.message}`);
+                this.reset();
+                this.classList.remove('was-validated');
+            } catch (erreur) {
+                alert("Impossible de joindre le serveur. Merci de réessayer dans quelques instants.");
+            } finally {
+                if (bouton) {
+                    bouton.disabled = false;
+                    bouton.innerHTML = libelleInitial;
+                }
+            }
         });
     </script>
 </body>

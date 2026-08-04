@@ -1,0 +1,20 @@
+# Dépendances
+node_modules/
+
+# Variables d'environnement (ne jamais versionner)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/
+.idea/

@@ -1,0 +1,106 @@
+services:
+
+  # ---------------------------------------------------------------
+  # Base de donnees relationnelle : PostgreSQL
+  # Les scripts places dans /docker-entrypoint-initdb.d sont joues
+  # automatiquement, dans l'ordre alphabetique, au premier demarrage.
+  # ---------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: vg_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-vite_gourmand}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      # L'application ne doit pas demarrer avant que Postgres accepte les connexions
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vite_gourmand}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------
+  # Base de donnees non relationnelle : MongoDB
+  # Exigee par l'enonce pour les donnees analytiques de l'espace
+  # administrateur (comparaison des commandes par menu).
+  # ---------------------------------------------------------------
+  mongo:
+    image: mongo:7
+    container_name: vg_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-mongo}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-mongo}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-vite_gourmand_analytics}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------
+  # Serveur SMTP de developpement : Mailpit
+  #
+  # Il capture tous les emails envoyes par l'application sans jamais les
+  # transmettre a un vrai destinataire, et les affiche dans une interface
+  # web. Cela permet de tester les parcours d'envoi sans compte mail reel
+  # et sans risque d'ecrire a de vraies adresses depuis un jeu de test.
+  # Interface web : http://localhost:8025
+  # ---------------------------------------------------------------
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: vg_mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Interface web
+    environment:
+      MP_MAX_MESSAGES: 500
+
+  # ---------------------------------------------------------------
+  # Application Node / Express
+  # ---------------------------------------------------------------
+  app:
+    build: .
+    container_name: vg_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    environment:
+      PORT: 3000
+      SESSION_SECRET: ${SESSION_SECRET:-change_moi_en_production}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      # Serveur SMTP : mailpit en developpement, un vrai relais en production
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_SECURE: ${MAIL_SECURE:-false}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-Vite & Gourmand <contact@viteetgourmand.fr>}
+      MAIL_CONTACT: ${MAIL_CONTACT:-contact@viteetgourmand.fr}
+      # A l'interieur du reseau Docker, l'hote n'est pas localhost
+      # mais le nom du service declare ci-dessus.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-vite_gourmand}
+      MONGO_URL: mongodb://${MONGO_USER:-mongo}:${MONGO_PASSWORD:-mongo}@mongo:27017/${MONGO_DB:-vite_gourmand_analytics}?authSource=admin
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+  mongodata:
