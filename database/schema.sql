@@ -102,3 +102,29 @@ CREATE TABLE avis (
     CONSTRAINT chk_note CHECK (note BETWEEN 1 AND 5),
     CONSTRAINT chk_moderation CHECK (statut_moderation IN ('en_attente', 'valide', 'refuse'))
 );
+-- ============================================================================
+-- JETONS DE REINITIALISATION DE MOT DE PASSE
+--
+-- Le jeton en clair n'est JAMAIS stocke : seule son empreinte SHA-256 l'est.
+-- Si la base fuite, les jetons deja emis restent inexploitables, exactement
+-- comme pour les mots de passe.
+--
+-- Chaque jeton a une duree de vie limitee et ne peut servir qu'une seule fois.
+-- ============================================================================
+CREATE TABLE reinitialisations_mot_de_passe (
+    id SERIAL PRIMARY KEY,
+    utilisateur_id INT NOT NULL,
+    jeton_hache CHAR(64) NOT NULL UNIQUE,
+    date_expiration TIMESTAMP NOT NULL,
+    date_utilisation TIMESTAMP,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_reinit_utilisateur FOREIGN KEY (utilisateur_id)
+        REFERENCES utilisateurs(id) ON DELETE CASCADE
+);
+
+-- Recherche par empreinte a chaque tentative de reinitialisation.
+CREATE INDEX idx_reinit_jeton ON reinitialisations_mot_de_passe (jeton_hache);
+
+-- Invalidation des jetons precedents d'un utilisateur lors d'une nouvelle demande.
+CREATE INDEX idx_reinit_utilisateur ON reinitialisations_mot_de_passe (utilisateur_id);

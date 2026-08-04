@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const mail = require('../services/mailService');
+const reinitialisation = require('../services/reinitialisationService');
 
 /**
  * Règle du cahier des charges : "mot de passe sécurisé (10 caractères
@@ -142,6 +143,149 @@ exports.getMe = async (req, res) => {
         res.status(200).json(userQuery.rows[0]);
     } catch (error) {
         console.error("Erreur lors de la récupération du profil :", error);
+        res.status(500).json({ error: "Une erreur interne est survenue." });
+    }
+};
+// ============================================================================
+// 5. MOT DE PASSE OUBLIÉ : DEMANDE D'UN LIEN DE RÉINITIALISATION
+// ============================================================================
+
+/**
+ * POST /api/auth/mot-de-passe-oublie
+ *
+ * Cahier des charges : "si le mot de passe est oublié, il pourra le
+ * réinitialiser via un bouton prévu à cet effet : un lien par mail lui sera
+ * envoyé afin de l'inviter à le réinitialiser, pour cela, il devra juste
+ * donner son mail dans le formulaire."
+ *
+ * Point de sécurité important : la réponse est volontairement identique que
+ * l'adresse existe ou non. Une réponse différenciée permettrait d'énumérer
+ * les comptes de la plateforme, ce qui est une fuite d'information et un
+ * manquement au RGPD.
+ */
+exports.demanderReinitialisation = async (req, res) => {
+    const { email } = req.body;
+
+    // Message unique, renvoyé dans tous les cas de figure.
+    const reponseNeutre = {
+        message: "Si un compte est associé à cette adresse, un email de réinitialisation vient d'être envoyé.",
+    };
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
+        return res.status(400).json({ error: "Une adresse email valide est obligatoire." });
+    }
+
+    try {
+        const utilisateurQuery = await db.query(
+            'SELECT id, prenom, email FROM utilisateurs WHERE email = $1',
+            [String(email).trim().toLowerCase()]
+        );
+
+        // Adresse inconnue : on répond exactement comme en cas de succès,
+        // sans rien envoyer.
+        if (utilisateurQuery.rows.length === 0) {
+            return res.status(200).json(reponseNeutre);
+        }
+
+        const utilisateur = utilisateurQuery.rows[0];
+        const { jeton } = await reinitialisation.creerJeton(utilisateur.id);
+
+        await mail.envoyerReinitialisation(
+            utilisateur, jeton, reinitialisation.DUREE_VALIDITE_MINUTES
+        );
+
+        res.status(200).json(reponseNeutre);
+    } catch (error) {
+        console.error("Erreur lors de la demande de réinitialisation :", error);
+        res.status(500).json({ error: "Une erreur interne est survenue." });
+    }
+};
+
+// ============================================================================
+// 6. VÉRIFICATION D'UN LIEN DE RÉINITIALISATION
+// ============================================================================
+
+/**
+ * GET /api/auth/reinitialisation/:jeton
+ *
+ * Permet à la page de réinitialisation de savoir, avant d'afficher le
+ * formulaire, si le lien est encore valide. Évite de faire saisir un nouveau
+ * mot de passe pour rien.
+ */
+exports.verifierLienReinitialisation = async (req, res) => {
+    try {
+        const ligne = await reinitialisation.verifierJeton(req.params.jeton);
+
+        if (!ligne) {
+            return res.status(400).json({
+                valide: false,
+                error: "Ce lien est invalide, expiré, ou a déjà été utilisé.",
+            });
+        }
+
+        res.status(200).json({ valide: true, prenom: ligne.prenom });
+    } catch (error) {
+        console.error("Erreur lors de la vérification du lien :", error);
+        res.status(500).json({ error: "Une erreur interne est survenue." });
+    }
+};
+
+// ============================================================================
+// 7. RÉINITIALISATION EFFECTIVE DU MOT DE PASSE
+// ============================================================================
+
+/**
+ * POST /api/auth/reinitialiser
+ *
+ * Le jeton est revérifié ici, et non seulement à l'affichage du formulaire :
+ * une vérification faite uniquement côté client ou lors d'un appel précédent
+ * ne protège rien.
+ */
+exports.reinitialiserMotDePasse = async (req, res) => {
+    const { jeton, mot_de_passe } = req.body;
+
+    if (!jeton) {
+        return res.status(400).json({ error: "Jeton manquant." });
+    }
+
+    const manques = validerMotDePasse(mot_de_passe);
+    if (manques.length > 0) {
+        return res.status(400).json({
+            error: "Le mot de passe ne respecte pas les exigences de sécurité.",
+            manquant: manques,
+        });
+    }
+
+    try {
+        const ligne = await reinitialisation.verifierJeton(jeton);
+
+        if (!ligne) {
+            return res.status(400).json({
+                error: "Ce lien est invalide, expiré, ou a déjà été utilisé.",
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(mot_de_passe, 12);
+
+        await db.query(
+            'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
+            [hashedPassword, ligne.utilisateur_id]
+        );
+
+        // Le jeton est consommé immédiatement : il ne pourra plus resservir.
+        await reinitialisation.consommerJeton(ligne.id);
+
+        // L'utilisateur est prévenu du changement, ce qui lui permet de réagir
+        // si la demande ne venait pas de lui.
+        await mail.envoyerConfirmationChangementMotDePasse({
+            email: ligne.email, prenom: ligne.prenom,
+        });
+
+        res.status(200).json({
+            message: "Votre mot de passe a bien été modifié. Vous pouvez maintenant vous connecter.",
+        });
+    } catch (error) {
+        console.error("Erreur lors de la réinitialisation du mot de passe :", error);
         res.status(500).json({ error: "Une erreur interne est survenue." });
     }
 };
