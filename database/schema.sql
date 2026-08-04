@@ -190,3 +190,43 @@ CREATE INDEX idx_plats_allergenes_allergene ON plats_allergenes (allergene_id);
 CREATE INDEX idx_menus_theme ON menus (theme);
 CREATE INDEX idx_menus_regime ON menus (regime);
 CREATE INDEX idx_menus_prix ON menus (prix_min);
+
+-- ============================================================================
+-- HISTORIQUE DES STATUTS DE COMMANDE
+--
+-- Le cahier des charges exige que "le suivi de la commande enumere tous les
+-- etats de sa commande suivi de la date et l'heure de modification".
+--
+-- La colonne commandes.statut porte l'etat courant, cette table porte
+-- l'historique complet. Conserver les deux evite de recalculer l'etat
+-- courant a chaque lecture, tout en gardant la tracabilite.
+--
+-- L'auteur du changement est conserve pour repondre a l'exigence de motif
+-- et de canal de contact lors d'une annulation par un employe.
+-- ============================================================================
+CREATE TABLE suivi_commandes (
+    id SERIAL PRIMARY KEY,
+    commande_id INT NOT NULL,
+    statut VARCHAR(30) NOT NULL,
+    auteur_id INT,
+    motif TEXT,
+    canal_contact VARCHAR(20),
+    date_changement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_suivi_commande FOREIGN KEY (commande_id)
+        REFERENCES commandes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_suivi_auteur FOREIGN KEY (auteur_id)
+        REFERENCES utilisateurs(id) ON DELETE SET NULL,
+
+    CONSTRAINT chk_suivi_statut CHECK (statut IN
+        ('attente', 'accepte', 'prep', 'livraison', 'livre', 'retour', 'terminee', 'annulee')),
+    CONSTRAINT chk_suivi_canal CHECK (canal_contact IS NULL OR canal_contact IN ('gsm', 'mail'))
+);
+
+-- Le suivi est toujours consulte pour une commande donnee, du plus ancien
+-- au plus recent.
+CREATE INDEX idx_suivi_commande ON suivi_commandes (commande_id, date_changement);
+
+-- Index sur les colonnes de filtrage de l'espace employe.
+CREATE INDEX idx_commandes_statut ON commandes (statut);
+CREATE INDEX idx_commandes_utilisateur ON commandes (utilisateur_id);

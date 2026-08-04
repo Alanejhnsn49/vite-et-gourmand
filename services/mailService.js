@@ -156,6 +156,87 @@ async function envoyerConfirmationCommande(utilisateur, commande, menu, detail) 
 }
 
 /**
+ * Notification de changement de statut d'une commande.
+ * Le client suit l'avancement de sa prestation sans avoir a se connecter.
+ */
+async function envoyerChangementStatut(utilisateur, commande, menuTitre, libelleStatut) {
+    return envoyer({
+        to: utilisateur.email,
+        subject: `Commande n°${commande.id} : ${libelleStatut}`,
+        html: gabarit(`Bonjour ${echapper(utilisateur.prenom)},`, `
+            <p>Votre commande <strong>n°${commande.id}</strong> pour le menu
+               <strong>${echapper(menuTitre)}</strong> vient de passer au statut :</p>
+            <p style="font-size:18px;font-weight:bold;color:#7c2d12;">${echapper(libelleStatut)}</p>
+            <p style="margin:24px 0;">
+              <a href="${APP_URL}/dashboard.html" style="background:#7c2d12;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Suivre ma commande</a>
+            </p>
+        `),
+    });
+}
+
+/**
+ * Notification de retour de materiel.
+ * Cahier des charges : "des que ce statut est atteint, le client recoit un
+ * mail lui notifiant que si sous 10 jours ouvres le materiel n'est pas
+ * restitue, alors il devra s'acquitter de 600 euros de frais".
+ */
+async function envoyerRetourMateriel(utilisateur, commande, delaiJours, penalite) {
+    return envoyer({
+        to: utilisateur.email,
+        subject: `Commande n°${commande.id} : restitution du matériel prêté`,
+        html: gabarit(`Bonjour ${echapper(utilisateur.prenom)},`, `
+            <p>Du materiel vous a ete prete pour votre prestation (commande n°${commande.id}).</p>
+            <div style="border-left:4px solid #dc2626;background:#fef2f2;padding:16px;margin:20px 0;">
+              <p style="margin:0;"><strong>Merci de nous le restituer sous ${delaiJours} jours ouvres.</strong></p>
+              <p style="margin:8px 0 0;">Passe ce delai, des frais de <strong>${penalite} euros</strong> vous seront factures, conformement aux conditions generales de vente.</p>
+            </div>
+            <p>Pour organiser la restitution, prenez contact avec nous a l'adresse ${ADRESSE_CONTACT}.</p>
+        `),
+    });
+}
+
+/**
+ * Invitation a deposer un avis, envoyee une fois la commande terminee.
+ * Cahier des charges : "quand la commande est terminee, alors l'utilisateur
+ * est notifie par mail qu'il peut se connecter a son compte pour donner son
+ * avis depuis la commande".
+ */
+async function envoyerInvitationAvis(utilisateur, commande, menuTitre) {
+    return envoyer({
+        to: utilisateur.email,
+        subject: `Votre avis sur la commande n°${commande.id}`,
+        html: gabarit(`Merci ${echapper(utilisateur.prenom)} !`, `
+            <p>Votre prestation <strong>${echapper(menuTitre)}</strong> est terminee. Nous esperons qu'elle vous a plu.</p>
+            <p>Vous pouvez maintenant deposer un avis depuis votre espace : une note de 1 a 5 et un commentaire.</p>
+            <p style="margin:24px 0;">
+              <a href="${APP_URL}/dashboard.html" style="background:#7c2d12;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Donner mon avis</a>
+            </p>
+        `),
+    });
+}
+
+/**
+ * Notification d'annulation, avec le motif et le canal de contact renseignes
+ * par l'employe.
+ */
+async function envoyerAnnulation(utilisateur, commande, motif, canal) {
+    const ligneContact = canal
+        ? `<p style="font-size:13px;color:#6b7280;">Vous avez ete contacte par ${canal === 'gsm' ? 'telephone' : 'email'} prealablement a cette annulation.</p>`
+        : '';
+
+    return envoyer({
+        to: utilisateur.email,
+        subject: `Commande n°${commande.id} annulée`,
+        html: gabarit(`Bonjour ${echapper(utilisateur.prenom)},`, `
+            <p>Votre commande <strong>n°${commande.id}</strong> a ete annulee.</p>
+            ${motif ? `<div style="border-left:4px solid #e5e7eb;padding-left:12px;margin:16px 0;"><strong>Motif :</strong> ${echapper(motif)}</div>` : ''}
+            ${ligneContact}
+            <p>Pour toute question, ecrivez-nous a ${ADRESSE_CONTACT}.</p>
+        `),
+    });
+}
+
+/**
  * Lien de reinitialisation de mot de passe.
  * Exige par le cahier des charges : "si le mot de passe est oublie, il pourra
  * le reinitialiser via un bouton prevu a cet effet : un lien par mail lui sera
@@ -242,6 +323,10 @@ async function verifierConnexion() {
 module.exports = {
     envoyerBienvenue,
     envoyerConfirmationCommande,
+    envoyerChangementStatut,
+    envoyerRetourMateriel,
+    envoyerInvitationAvis,
+    envoyerAnnulation,
     envoyerReinitialisation,
     envoyerConfirmationChangementMotDePasse,
     envoyerDemandeContact,
