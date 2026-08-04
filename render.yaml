@@ -1,0 +1,73 @@
+# ============================================================================
+# Blueprint Render
+#
+# Ce fichier decrit l'infrastructure d'hebergement. Render le lit et cree les
+# services automatiquement, plutot que de devoir les configurer un par un dans
+# l'interface. C'est l'equivalent, cote hebergeur, de ce que docker-compose.yml
+# fait en local.
+#
+# Ce qui n'est PAS decrit ici, parce que Render ne le fournit pas :
+#   - MongoDB : a creer sur MongoDB Atlas (offre gratuite M0), puis renseigner
+#     MONGO_URL dans les variables d'environnement du service
+#   - SMTP : a souscrire chez un fournisseur d'envoi, puis renseigner les
+#     variables MAIL_*. Sans elles, l'application fonctionne mais n'envoie
+#     aucun email, les echecs d'envoi n'interrompant jamais un parcours
+# ============================================================================
+
+databases:
+  - name: vite-gourmand-db
+    databaseName: vite_gourmand
+    user: vite_gourmand
+    plan: free
+
+services:
+  - type: web
+    name: vite-et-gourmand
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+
+    # Render interroge cette route pour savoir si l'instance est saine.
+    # Elle verifie la connexion effective aux bases, pas seulement que le
+    # processus repond.
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Active les cookies "secure" et le proxy de confiance dans server.js.
+      # Sans NODE_ENV=production, l'authentification ne fonctionnerait pas
+      # derriere le reverse proxy HTTPS de Render.
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vite-gourmand-db
+          property: connectionString
+
+      # Genere une valeur aleatoire a la creation du service, puis la conserve.
+      # Le secret n'apparait donc jamais dans le depot.
+      - key: SESSION_SECRET
+        generateValue: true
+
+      - key: APP_URL
+        sync: false   # a renseigner avec l'URL publique une fois attribuee
+
+      - key: MONGO_URL
+        sync: false   # chaine de connexion MongoDB Atlas
+
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_SECURE
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_CONTACT
+        sync: false
