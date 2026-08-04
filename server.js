@@ -14,6 +14,8 @@ const orderRoutes = require('./routes/orders');
 const menuRoutes = require('./routes/menus');
 const analyticsRoutes = require('./routes/analytics');
 const contactRoutes = require('./routes/contact');
+const userRoutes = require('./routes/users');
+const avisRoutes = require('./routes/avis');
 
 // Middleware pour analyser les requêtes JSON et de formulaires
 app.use(express.json());
@@ -41,6 +43,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/menus', menuRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/avis', avisRoutes);
 
 // Route de test d'API
 app.get('/api/status', (req, res) => {
