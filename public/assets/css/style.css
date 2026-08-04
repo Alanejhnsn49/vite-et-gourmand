@@ -346,3 +346,79 @@ main h1.h2::after,
     font-size: 0.7rem;
     font-weight: 600;
 }
+/* ============================================================================
+   ACCESSIBILITÉ (RGAA)
+   ============================================================================ */
+
+/* Lien d'évitement.
+   Il est le premier élément focusable de chaque page. Invisible tant qu'il
+   n'a pas le focus, il apparaît dès la première tabulation et permet de
+   sauter la navigation, répétée à l'identique sur toutes les pages, pour
+   atteindre directement le contenu.
+   Il n'est PAS masqué avec display:none, ce qui le retirerait de l'ordre de
+   tabulation et le rendrait inatteignable. */
+.lien-evitement {
+    position: absolute;
+    top: -100px;
+    left: 1rem;
+    z-index: 2000;
+    padding: 0.75rem 1.25rem;
+    background-color: var(--couleur-verte);
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    transition: top 0.15s ease-in-out;
+}
+
+.lien-evitement:focus {
+    top: 0;
+    color: #ffffff;
+    outline: 3px solid var(--couleur-or);
+    outline-offset: 2px;
+}
+
+/* Visibilité du focus.
+   Bootstrap applique un halo discret qui disparaît sur certains fonds.
+   Un contour franc et systématique garantit qu'une personne naviguant au
+   clavier sait toujours où elle se trouve. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--couleur-verte);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* Sur fond sombre, le vert du contour manque de contraste : on bascule sur
+   le doré, plus lisible. */
+.bg-dark a:focus-visible,
+.bg-dark button:focus-visible,
+.navbar-dark a:focus-visible,
+.navbar-dark button:focus-visible,
+footer a:focus-visible {
+    outline-color: var(--couleur-or);
+}
+
+/* Contraste du texte secondaire.
+   Le gris de Bootstrap sur fond sombre descend sous le seuil de 4,5:1 exigé
+   par le RGAA pour du texte normal. Cette valeur le remonte au-dessus. */
+footer .text-white-50,
+.bg-dark .text-white-50 {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Respect de la préférence système de réduction des animations. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

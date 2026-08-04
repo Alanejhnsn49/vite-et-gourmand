@@ -12,6 +12,11 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
+    <!-- Lien d'evitement : premier element focusable, il permet a une
+         personne naviguant au clavier de sauter la navigation repetee sur
+         chaque page pour atteindre directement le contenu. -->
+    <a class="lien-evitement" href="#contenu">Aller au contenu principal</a>
+
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
@@ -39,7 +44,7 @@
         </div>
     </nav>
 
-    <main class="flex-grow-1 py-5">
+    <main id="contenu" class="flex-grow-1 py-5">
         <div class="container">
 
             <div id="etatChargement" class="text-center py-5">
@@ -55,7 +60,7 @@
                 <a href="login.html" class="btn btn-success">Se connecter</a>
             </div>
 
-            <div id="contenu" class="d-none">
+            <div id="zoneGestion" class="d-none">
 
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
                     <div>
@@ -657,10 +662,10 @@
             try {
                 await Promise.all([chargerMenus(), chargerPlats(), chargerHoraires()]);
                 $('etatChargement').classList.add('d-none');
-                $('contenu').classList.remove('d-none');
+                $('zoneGestion').classList.remove('d-none');
             } catch (erreur) {
                 $('etatChargement').classList.add('d-none');
-                $('contenu').classList.remove('d-none');
+                $('zoneGestion').classList.remove('d-none');
                 message(erreur.message, 'danger');
             }
         });
