@@ -1,4 +1,4 @@
-Projet ECF du développeur web et web mobile a finir
+Projet ECF du développeur web et web mobile (a terminer)
 
 Appplication pour l'entreprise Vite et gourmand
 
