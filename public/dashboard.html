@@ -13,6 +13,11 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
+    <!-- Lien d'evitement : premier element focusable, il permet a une
+         personne naviguant au clavier de sauter la navigation repetee sur
+         chaque page pour atteindre directement le contenu. -->
+    <a class="lien-evitement" href="#contenu">Aller au contenu principal</a>
+
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
@@ -36,7 +41,7 @@
         </div>
     </nav>
 
-    <main class="flex-grow-1 py-4 py-md-5">
+    <main id="contenu" class="flex-grow-1 py-4 py-md-5">
         <div class="container">
 
             <div id="etatChargement" class="text-center py-5">
