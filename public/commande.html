@@ -31,7 +31,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
                     <li class="nav-item"><a class="nav-link" href="menus.html">Nos Menus</a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.html">Connexion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.html" id="lienCompte">Connexion</a></li>
                     <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
                 </ul>
             </div>
@@ -192,6 +192,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="assets/js/navigation.js"></script>
 
     <!-- Script de calcul dynamique de la commande -->
     <script>
@@ -223,7 +225,11 @@
                 const userResponse = await fetch('/api/auth/me'); // Nous allons créer cette route simple
                 if (!userResponse.ok) {
                     alert("Veuillez vous connecter pour accéder à l'espace commande.");
-                    window.location.href = "login.html";
+                    // On garde le menu demandé pour y revenir après la connexion.
+                    const menuDemande = new URLSearchParams(window.location.search).get('menu');
+                    window.location.href = menuDemande
+                        ? `login.html?redirect=commande&menu=${encodeURIComponent(menuDemande)}`
+                        : "login.html";
                     return;
                 }
                 activeUser = await userResponse.json();
