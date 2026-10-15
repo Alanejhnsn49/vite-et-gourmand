@@ -24,7 +24,7 @@ body {
 
 .navbar-brand {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.25rem; /* valeur du petit écran, agrandie plus bas en min-width */
     letter-spacing: 1px;
 }
 
@@ -42,7 +42,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 70vh;
+    min-height: 60vh; /* valeur du petit écran, agrandie plus bas en min-width */
     display: flex;
     align-items: center; /* Centre verticalement le contenu */
 }
@@ -72,11 +72,6 @@ section.bg-success h1 {
     border-radius: 2px; /* Garde le style angulaire d'origine */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 /* Mise en valeur de la formule la plus populaire */
@@ -162,14 +157,6 @@ div h2.text-success::after {
 
 .border-success-subtle {
     border-color: rgba(var(--couleur-verte-rgb), 0.25) !important;
-}
-
-/* Séparateur pour le menu assis */
-@media (min-width: 768px) {
-    .border-end-md {
-        border-inline: 1px solid rgba(0, 0, 0, 0.1); /* Utilise la bordure par défaut de Bootstrap */
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
-    }
 }
 
 /* ============ FOOTER ============ */
@@ -420,5 +407,47 @@ footer .text-white-50,
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* ============ ADAPTATION AUX ÉCRANS : APPROCHE MOBILE FIRST ============ */
+
+/* Méthode suivie dans tout ce fichier. Les valeurs déclarées hors de toute
+   media query sont celles du plus petit écran : c'est l'état de base du
+   document. Les règles en min-width ci-dessous n'ajoutent que ce que la
+   largeur disponible permet, au lieu de défaire un style pensé pour
+   l'ordinateur comme le ferait une écriture en max-width.
+   Les classes de grille de Bootstrap (col-md-*, col-lg-*) obéissent à la
+   même logique et prennent en charge la mise en colonnes. Ce bloc traite
+   ce qu'une grille ne sait pas exprimer. */
+
+@media (min-width: 768px) {
+
+    /* Bandeau d'accueil. Sa valeur de base est 60vh : sur un téléphone,
+       70 % de la hauteur de fenêtre repoussent le premier contenu utile
+       sous la ligne de flottaison. La hauteur d'origine est rétablie dès
+       que l'écran s'élargit. */
+    .hero-section {
+        min-height: 70vh;
+    }
+
+    /* Nom de l'entreprise. Il partage la barre avec le bouton de menu :
+       à 1,6rem, les deux se disputent la largeur sur un écran de 360px. */
+    .navbar-brand {
+        font-size: 1.6rem;
+    }
+}
+
+/* Effet de survol des cartes.
+   Le survol n'existe pas sur un écran tactile. Sans cette condition, l'effet
+   de soulèvement se déclenche à l'appui et reste appliqué après le
+   relâchement, jusqu'à ce que l'utilisateur touche ailleurs : la carte
+   reste visuellement accrochée. La condition porte ici sur la capacité du
+   périphérique de pointage et non sur la largeur de l'écran, ce qu'aucune
+   classe de grille ne peut exprimer. */
+@media (hover: hover) and (pointer: fine) {
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     }
 }
