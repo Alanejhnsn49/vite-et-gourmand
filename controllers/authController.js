@@ -23,9 +23,33 @@ function validerMotDePasse(motDePasse) {
     return manques;
 }
 
+/**
+ * Normalise une adresse email avant tout enregistrement ou toute recherche.
+ *
+ * Les adresses email sont insensibles à la casse en pratique : "Alane@X.fr" et
+ * "alane@x.fr" désignent la même boîte. Les stocker telles quelles pose deux
+ * problèmes concrets :
+ *
+ * 1. La contrainte UNIQUE de la table est, elle, sensible à la casse. Deux
+ *    comptes distincts pouvaient donc coexister pour une même adresse réelle.
+ * 2. La demande de réinitialisation convertit en minuscules avant de chercher.
+ *    Un compte enregistré avec une majuscule se connectait normalement mais
+ *    n'était jamais retrouvé à la réinitialisation. Comme la réponse est
+ *    volontairement neutre pour empêcher l'énumération des comptes,
+ *    l'utilisateur ne recevait aucune erreur : il attendait un email qui ne
+ *    partait jamais.
+ *
+ * Les autres contrôleurs normalisaient déjà de leur côté. Cette fonction
+ * aligne l'inscription et la connexion sur le même traitement.
+ */
+function normaliserEmail(email) {
+    return String(email || '').trim().toLowerCase();
+}
+
 // 1. INSCRIPTION
 exports.register = async (req, res) => {
     const { nom, prenom, email, mot_de_passe, telephone, adresse_facturation } = req.body;
+    const emailNormalise = normaliserEmail(email);
 
     try {
         const manques = validerMotDePasse(mot_de_passe);
@@ -37,7 +61,7 @@ exports.register = async (req, res) => {
         }
 
         // Vérifier si l'email existe déjà
-        const userExists = await db.query('SELECT * FROM utilisateurs WHERE email = $1', [email]);
+        const userExists = await db.query('SELECT * FROM utilisateurs WHERE email = $1', [emailNormalise]);
         if (userExists.rows.length > 0) {
             return res.status(400).json({ error: "Cet email est déjà utilisé." });
         }
@@ -54,7 +78,7 @@ exports.register = async (req, res) => {
         `;
         
         const newUser = await db.query(insertQuery, [
-            nom, prenom, email, hashedPassword, telephone, adresse_facturation
+            nom, prenom, emailNormalise, hashedPassword, telephone, adresse_facturation
         ]);
 
         // Email de bienvenue automatique. Un échec d'envoi ne remet pas
@@ -77,8 +101,10 @@ exports.login = async (req, res) => {
     const { email, mot_de_passe } = req.body;
 
     try {
-        // Rechercher l'utilisateur par son email
-        const userQuery = await db.query('SELECT * FROM utilisateurs WHERE email = $1', [email]);
+        // Rechercher l'utilisateur par son email, normalisé comme à l'inscription.
+        const userQuery = await db.query(
+            'SELECT * FROM utilisateurs WHERE email = $1', [normaliserEmail(email)]
+        );
         if (userQuery.rows.length === 0) {
             return res.status(401).json({ error: "Identifiants incorrects." });
         }
@@ -192,7 +218,7 @@ exports.demanderReinitialisation = async (req, res) => {
     try {
         const utilisateurQuery = await db.query(
             'SELECT id, prenom, email FROM utilisateurs WHERE email = $1',
-            [String(email).trim().toLowerCase()]
+            [normaliserEmail(email)]
         );
 
         // Adresse inconnue : on répond exactement comme en cas de succès,

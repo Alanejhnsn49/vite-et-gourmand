@@ -102,57 +102,83 @@ exports.createOrder = async (req, res) => {
         return res.status(400).json({ error: "La date de prestation ne peut pas être dans le passé." });
     }
 
+    // Une connexion est reservee pour toute la duree de l'ecriture. Le pool
+    // ne garantit pas de servir deux fois la meme connexion : une transaction
+    // doit donc tenir sur un client dedie, comme dans appliquerStatut.
+    const client = await db.connect();
+
     try {
         const menu = await chargerMenuCommandable(menuId);
 
         // Tout le calcul tarifaire est delegue au service dedie.
         const detail = tarification.calculerTarif(menu, nombreConvives, villeLivraison, distanceKm);
 
+        // ------------------------------------------------------------------
+        // Bloc atomique : creer la commande, retirer une unite de stock et
+        // ouvrir l'historique forment une seule operation metier. Sans
+        // transaction, l'echec de la troisieme requete laisserait une
+        // commande vendue, un stock deja decremente et aucune trace dans le
+        // suivi : la chronologie du client demarrerait au deuxieme statut.
+        // ------------------------------------------------------------------
+        await client.query('BEGIN');
+
         const insertQuery = `
             INSERT INTO commandes (utilisateur_id, menu_id, date_prestation, heure_prestation, adresse_livraison, ville_livraison, distance_km, nombre_convives, total_ttc, statut)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'attente')
             RETURNING *;
         `;
-        const newOrder = await db.query(insertQuery, [
+        const newOrder = await client.query(insertQuery, [
             userId, menu.id, datePrestation, heurePrestation,
             adresseLivraison, villeLivraison, detail.distance_km,
             detail.nombre_convives, detail.total_ttc,
         ]);
 
-        await db.query('UPDATE menus SET stock = stock - 1 WHERE id = $1', [menu.id]);
+        await client.query('UPDATE menus SET stock = stock - 1 WHERE id = $1', [menu.id]);
 
         // Premiere entree du suivi : sans elle, l'historique commencerait au
         // deuxieme statut et le client ne verrait pas la date de sa commande
         // dans sa chronologie.
-        await db.query(
+        await client.query(
             `INSERT INTO suivi_commandes (commande_id, statut, auteur_id)
              VALUES ($1, 'attente', $2)`,
             [newOrder.rows[0].id, userId]
         );
 
-        // Evenement analytique ecrit apres l'enregistrement relationnel :
-        // une indisponibilite de MongoDB ne doit jamais faire echouer une vente.
-        await analytics.enregistrerCommande(newOrder.rows[0], menu);
+        await client.query('COMMIT');
+        // ----------------------- fin du bloc atomique ---------------------
+
+        const commande = newOrder.rows[0];
+
+        // Les deux effets qui suivent sont volontairement HORS transaction.
+        // Ils n'engagent pas la vente : une indisponibilite de MongoDB ou du
+        // serveur de courriel ne doit jamais annuler une commande deja
+        // validee. Les deux services rattrapent d'ailleurs leurs propres
+        // erreurs et se contentent de les journaliser.
+        await analytics.enregistrerCommande(commande, menu);
 
         // Email de confirmation avec le détail tarifaire.
-        // Comme pour l'analytique, un échec d'envoi ne remet jamais la
-        // commande en cause : elle est déjà enregistrée.
         const clientQuery = await db.query(
             'SELECT prenom, nom, email FROM utilisateurs WHERE id = $1', [userId]
         );
         if (clientQuery.rows.length > 0) {
             await mail.envoyerConfirmationCommande(
-                clientQuery.rows[0], newOrder.rows[0], menu, detail
+                clientQuery.rows[0], commande, menu, detail
             );
         }
 
         res.status(201).json({
             message: "Commande enregistrée avec succès !",
-            commande: newOrder.rows[0],
+            commande,
             detail,
         });
 
     } catch (error) {
+        // Annule les ecritures non encore validees. Si le COMMIT a deja eu
+        // lieu, PostgreSQL signale simplement qu'aucune transaction n'est en
+        // cours : l'avertissement est sans consequence et ne doit pas
+        // masquer l'erreur d'origine, d'ou le rattrapage silencieux.
+        await client.query('ROLLBACK').catch(() => {});
+
         if (error.code === 'CONVIVES_INSUFFISANTS') {
             return res.status(400).json({ error: error.message, minimum: error.minimum });
         }
@@ -161,6 +187,10 @@ exports.createOrder = async (req, res) => {
         }
         console.error("Erreur lors de la création de la commande :", error);
         res.status(500).json({ error: "Une erreur interne est survenue." });
+    } finally {
+        // Rend la connexion au pool dans tous les cas, succes comme echec.
+        // Sans ce release, le pool se viderait connexion apres connexion.
+        client.release();
     }
 };
 
