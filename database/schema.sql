@@ -102,7 +102,11 @@ CREATE TABLE commandes (
     CONSTRAINT chk_convives CHECK (nombre_convives > 0),
     CONSTRAINT chk_total CHECK (total_ttc >= 0.00),
     CONSTRAINT chk_statut CHECK (statut IN ('attente', 'accepte', 'prep', 'livraison', 'livre', 'retour', 'terminee', 'annulee')),
-    CONSTRAINT chk_contact CHECK (canal_contact IN ('gsm', 'mail', NULL))
+    -- NULL doit etre teste explicitement : en SQL, "x IN (..., NULL)" se
+    -- developpe en "x = NULL", qui ne vaut jamais vrai mais nul. La contrainte
+    -- ne rejetait donc rien pour une valeur nulle, par accident plutot que par
+    -- intention. Meme ecriture que chk_suivi_canal, plus bas.
+    CONSTRAINT chk_contact CHECK (canal_contact IS NULL OR canal_contact IN ('gsm', 'mail'))
 );
 
 -- ============================================================================
