@@ -19,7 +19,10 @@ databases:
     databaseName: vite_gourmand
     user: vite_gourmand
     plan: free
-
+    # Meme region que le service web : une adresse interne Render
+    # ne fonctionne qu'entre services d'une meme region.
+    region: frankfurt
+    
 services:
   - type: web
     name: vite-et-gourmand
